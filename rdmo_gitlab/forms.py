@@ -216,7 +216,7 @@ class GitLabExportForm(forms.Form):
     
     commit_message = forms.CharField(label=_('Commit message'))
 
-class GitLabInportForm(forms.Form):
+class GitLabImportForm(forms.Form):
     repo = forms.CharField(label=_('GitLab repository'),
                             help_text=_('Please use the form username/repository or organization/repository.'))
     path = forms.CharField(label=_('File path'),)
