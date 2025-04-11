@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div class="checkbox">
+    <label style="width: 100%; display: flex; align-items: center;">
+            <span style="flex-grow: 1;">
+                {% with subwidget=widget.subwidgets.0 %}
+                {% include "django/forms/widgets/input.html" with widget=subwidget %}
+                {{ subwidget.label }}
+                {% endwith %}
+                <span style="color: red; margin-left: 0.5rem; display: {% if widget.option_in_repo %}inline{% else %}none{% endif %}; %}">File exists and will be overwritten</span>
+            </span>
+            <span style="width: 50%; align-items: center; display: flex;">
+                <span style="width: 70px;">{% trans 'File path' %}</span>
+                {% include "django/forms/widgets/input.html" with widget=widget.subwidgets.1 %}      
+            </span>
+    </label>
+</div>
