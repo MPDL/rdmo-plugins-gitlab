@@ -34,16 +34,18 @@ For the issue provider, add the plugin to `PROJECT_ISSUE_PROVIDERS` in `config/s
 
 ```python
 PROJECT_ISSUE_PROVIDERS += [
-    ('gitlab', _('GitLab Provider'), 'rdmo_gitlab.providers.GitLab'),
+    ('gitlab', _('GitLab Provider'), 'rdmo_gitlab.providers.GitLabIssueProvider'),
 ]
 ```
 
-For the import, add the plugin to `PROJECT_IMPORTS` in `config/settings/local.py`:
+For the import, add the plugin to `PROJECT_IMPORTS` and `PROJECT_IMPORTS_LIST` in `config/settings/local.py`:
 
 ```python
 PROJECT_IMPORTS = [
     ('gitlab', _('Import from GitLab'), 'rdmo_gitlab.providers.GitLabImport'),
 ]
+
+PROJECT_IMPORTS_LIST += ['gitlab']
 ```
 
 
