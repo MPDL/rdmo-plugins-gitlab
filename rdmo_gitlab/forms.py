@@ -251,7 +251,6 @@ class ExportsMultipleChoiceField(forms.MultipleChoiceField):
         value = self.to_python(value)
 
         if value in self.empty_values and self.required:
-            # raise ValidationError(self.error_messages['required'], code='required')
             raise ValidationError(_('At least one choice must be selected'))
 
         for multivalue in value:
