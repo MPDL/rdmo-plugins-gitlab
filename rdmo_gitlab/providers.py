@@ -15,10 +15,10 @@ from rdmo.core.plugins import get_plugin
 from rdmo.projects.imports import RDMOXMLImport
 from rdmo.projects.providers import OauthIssueProvider
 
+from rdmo_maus.maus_exports import MAUSExport
+
 from .forms import GitLabExportForm, GitLabImportForm
 from .mixins import GitLabProviderMixin
-from .maus_exports import MAUSExport
-# from .utils import unzip, get_record_id_from_project_value, set_record_id_on_project_value
 
 logger = logging.getLogger(__name__)
 
