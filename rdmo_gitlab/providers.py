@@ -51,8 +51,8 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
     def render(self):
         self.pop_from_session(self.request, 'gitlab_export_choices_to_update')
         access_token = self.validate_access_token(self.request, self.get_from_session(self.request, 'access_token'))
-        print('render()')
-        print(f'    access_token: {access_token}')
+        # print('render()')
+        # print(f'    access_token: {access_token}')
         if access_token is None:
             redirect_url = self.request.build_absolute_uri()
             self.store_in_session(self.request, 'redirect_url', redirect_url)
@@ -203,7 +203,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                 processing_status = _('successfully exported')
 
                 action = 'update' if choice_in_repo else 'create'
-                print(f'    action: {action}')
+                # print(f'    action: {action}')
                 actions.append({
                     'action': action,
                     'file_path': quote(file_path, safe="/ "),
