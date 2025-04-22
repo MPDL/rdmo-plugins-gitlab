@@ -13,10 +13,7 @@ class ExportsChoiceMultiWidget(forms.MultiWidget):
         super().__init__(widgets, attrs)
 
     def decompress(self, value):
-        boolean_value = {
-            'False': False,
-            'True': True
-        }
+        boolean_value = {'False': False, 'True': True}
         if value:
             splitted_value = value.split(',')
             splitted_value[0] = boolean_value[splitted_value[0]]
