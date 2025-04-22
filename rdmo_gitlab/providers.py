@@ -43,7 +43,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
 
         smp_exports = getattr(self, 'smp_exports', None)
         if smp_exports and len(smp_exports) > 0:
-            smp_export_choices = [(f'False,{v["file_path"]}', (v["label"],k)) for k,v in smp_exports.items()]
+            smp_export_choices = [(f'False,{v["file_path"]}', (v["label"], k)) for k,v in smp_exports.items()]
             return smp_export_choices + export_choices
         else:
             return export_choices
@@ -203,7 +203,6 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                 processing_status = _('successfully exported')
 
                 action = 'update' if choice_in_repo else 'create'
-                # print(f'    action: {action}')
                 actions.append({
                     'action': action,
                     'file_path': quote(file_path, safe="/ "),
