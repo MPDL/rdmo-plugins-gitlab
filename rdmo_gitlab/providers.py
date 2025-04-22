@@ -8,7 +8,7 @@ from urllib.parse import quote
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 from rdmo.core.imports import handle_fetched_file
 from rdmo.core.plugins import get_plugin
@@ -76,71 +76,65 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
 
         if form.is_valid():
             choices_to_update = self.get_from_session(self.request, 'gitlab_export_choices_to_update')
-            # print(f'choices_to_update: {choices_to_update}')
             if choices_to_update is None:
-                choices_to_update = self.check_file_paths(form.cleaned_data)
+                choices_to_update, checked_export_choices = self.check_file_paths(
+                    form.cleaned_data['exports'], 
+                    form.cleaned_data['repo'], 
+                    form.cleaned_data['branch']
+                )
+                self.store_in_session(self.request, 'gitlab_export_choices_to_update', choices_to_update)
+                self.store_in_session(self.request, 'gitlab_checked_export_choices', checked_export_choices)
+                
                 selected_choices = [c for c in self.export_choices if c[1][1] in choices_to_update.keys()]
                 form = GitLabExportForm(self.request.POST, export_choices=selected_choices, export_choices_to_update=choices_to_update)
                 context = {'form': form, 'source_title': self.gitlab_url, 'submit_label':_('Export to GitLab')}
+                
                 return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
             url, request_data = self.process_form_data(form.cleaned_data, choices_to_update)
-            # print(f"request_data: {request_data}")
-
             if url is not None and request_data is not None:
                 return self.make_request(self.request, 'post', url, json=request_data)
             else:
                 return render(self.request, 'core/error.html', {
-                    'title': _('Error processing form data'),
-                    'errors': [_('Something went wrong in the creation of the selected choices')]
+                    'title': _('Something went wrong'),
+                    'errors': [_('Export choices could not be created or repository content would have been overwritten without a warning')]
                 }, status=200)
         
-        context = {'form': form, 'source_title': self.gitlab_url, 'submit_label':_('Export to GitLab')}
+        context = {'form': form, 'source_title': self.gitlab_url, 'submit_label': _('Proceed')}
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
     
-    def check_file_paths(self, form_data):
-        # print('check_file_paths()')
-        # print(f'    form_data: {form_data}')
-
+    def check_file_paths(self, exports, repo, branch):
         choices_to_update = {}
-        for e in form_data['exports']:
-            print(f'    e: {e}')
-            choice, file_path = e.split(',')
+        for e in exports:
+            choice_key, file_path = e.split(',')
             url = '{api_url}/projects/{repo}/repository/files/{path}?ref={ref}'.format(
                 api_url=self.api_url,
-                repo=quote(form_data['repo'], safe=''),
-                path=quote(file_path),
-                ref=quote(form_data['branch'], safe='')
+                repo=quote(repo.replace('https://gitlab.com/', ''), safe=''),
+                path=quote(file_path, safe=''),
+                ref=quote(branch, safe='')
             )
-            print(f'    url: {url}')
 
             response = self.make_request(self.request, 'head', url)
-            
             choice_in_repo = True if response is not None and response.status_code == 200 else False
-            choices_to_update[choice] = choice_in_repo
+            choices_to_update[choice_key] = choice_in_repo
 
-        # print(f'    choices_to_update: {choices_to_update}')
-
-        self.store_in_session(self.request, 'gitlab_export_choices_to_update', choices_to_update)
-
-        return choices_to_update
+        return choices_to_update, exports
     
-    def render_export(self, choice):
+    def render_export(self, choice_key):
         smp_exports = getattr(self, 'smp_exports', None)
         if smp_exports and (
-            choice in self.smp_exports.keys() or (choice.startswith('license_') and 'license' in self.smp_exports.keys())
+            choice_key in self.smp_exports.keys() or (choice_key.startswith('license_') and 'license' in self.smp_exports.keys())
         ):
-            # print("    getting content from MAUSExport")
-            response = self.render_smp_export(choice)
+            response = self.render_smp_export(choice_key)
         else:
-            export_plugin = get_plugin('PROJECT_EXPORTS', choice)
+            export_plugin = get_plugin('PROJECT_EXPORTS', choice_key)
             export_plugin.project = self.project
             response = export_plugin.render()
 
         return response
     
-    # def render_export_content(self, choice):
-    #     response, file_name = self.render_export(choice)
+    # def render_export_content(self, choice_key):
+    #     response, file_name = self.render_export(choice_key)
     #     choice_content = []
     #     try:
     #         if file_name.endswith('.zip'):
@@ -157,57 +151,80 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
     #             choice_content.append((base64_string_of_content, file_name))
     #         # print("    content creation worked")
     #     except:
-    #         logger.warning(f'No content created for {choice}')
+    #         logger.warning(f'No content created for {choice_key}')
     #         # print("    content creation didn't worked")
     #         pass
 
     #     return choice_content
 
-    def render_export_content(self, choice):
-        response = self.render_export(choice)
+    def render_export_content(self, choice_key):
+        response = self.render_export(choice_key)
         try:            
             binary = response.content
             base64_bytes_of_content = base64.b64encode(binary)
             base64_string_of_content = base64_bytes_of_content.decode('utf-8')
             choice_content = base64_string_of_content
-            # print("    content creation worked")
         except:
-            logger.warning(f'No content created for {choice}')
-            # print("    content creation didn't worked")
+            logger.warning(f'No content created for {choice_key}')
             choice_content = None
 
         return choice_content
     
-    def process_form_data(self, form_data, choices_to_update):
-        # print('process_form_data()')
-        # print(f"    form_data: {form_data}")
+    def process_form_data(self, form_data, choices_to_update, update_without_warning=False):
         actions = []
-        successfully_processed_exports = []
+        processed_exports = []
 
+        checked_export_choices = self.get_from_session(self.request, 'gitlab_checked_export_choices')
         exports = form_data['exports']
         for e in exports:
-            choice, file_path = e.split(',')
-            choice_in_repo = choices_to_update[choice]
-            content = self.render_export_content(choice)
-            if content is not None:
-                successfully_processed_exports.append(choice)
-                # name = next((c[1][0] for c in self.export_choices if c[1][1] == choice), choice)
+            choice_key, file_path = e.split(',')
+            initial_file_path = next((exp.split(',')[1] for exp in checked_export_choices if exp.split(',')[0] == choice_key), file_path)
+            # print(f'    choice_key: {choice_key}, file_path: {file_path}, initial_file_path: {initial_file_path}')
+            
+            if file_path != initial_file_path:
+                new_choices_to_update, __ = self.check_file_paths([e], form_data['repo'], form_data['branch'])
+                choices_to_update[choice_key] = new_choices_to_update[choice_key]
+                if new_choices_to_update[choice_key] == True and not update_without_warning:
+                    processed_exports.append({
+                        'key': choice_key,
+                        'label': next((c[1][0] for c in self.export_choices if c[1][1] == choice_key), choice_key), 
+                        'success': False,
+                        'processing_status': _('not exported - it would have overwritten existing file in repository')
+                    })
+                    continue
+            
+            choice_in_repo = choices_to_update[choice_key]
+            content = self.render_export_content(choice_key)
+            if content is None:
+                success = False
+                processing_status = _('not exported - it could not be created')
+            else:
+                success = True
+                processing_status = _('successfully exported')
+
                 action = 'update' if choice_in_repo else 'create'
+                print(f'    action: {action}')
                 actions.append({
                     'action': action,
-                    'file_path': quote(file_path),
+                    'file_path': quote(file_path, safe="/ "),
                     'content': content,
                     'encoding': 'base64'
                 })
-                # print(f"    created action for {file_path} with action: {action}")
 
+            choice_label = next((c[1][0] for c in self.export_choices if c[1][1] == choice_key), choice_key)
+            processed_exports.append({
+                'key': choice_key,
+                'label': choice_label, 
+                'success': success,
+                'processing_status': processing_status
+            })
+
+        successfully_processed_exports = list(filter(lambda x: x['success'] == True, processed_exports))
         if len(successfully_processed_exports) == 0:
             logger.warning(f'No export content could be created for the selected choices: {exports}')
-            # print(f'No export content could be created for the selected choices: {exports}')
             return None, None
 
-        self.store_in_session(self.request, 'gitlab_successfully_processed_exports', successfully_processed_exports)
-        self.store_in_session(self.request, 'gitlab_chosen_exports', [choice.split(',')[0] for choice in exports])
+        self.store_in_session(self.request, 'gitlab_processed_exports', processed_exports)
 
         url = '{api_url}/projects/{repo}/repository/commits'.format(
                 api_url=self.api_url,
@@ -224,23 +241,10 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
         # return None, None
 
     def post_success(self, request, response):
-        successfully_processed_exports = self.pop_from_session(request, 'gitlab_successfully_processed_exports')
-        # print(f"successfully_processed_exports: {successfully_processed_exports}")
-        chosen_exports = self.pop_from_session(request, 'gitlab_chosen_exports')
-        # print(f"chosen_exports: {chosen_exports}")
-
-        # commit_id = response.json().get('id')
-        successful_uploads = []
-        for e in chosen_exports:
-            success = True if e in successfully_processed_exports else False
-            name = next((c[1][0] for c in self.export_choices if c[1][1] == e), e)
-            successful_uploads.append({'name': name, 'success': success})
-            # if success:
-                # print(f"saving commit id for {e}")
-                # set_record_id_on_project_value(self.project, commit_id, e) # name.lower().replace(' ', '_'))
-        
+        processed_exports = self.pop_from_session(request, 'gitlab_processed_exports')
         repo_html_url = response.json().get('web_url').split("-/commit")[0]
-        context = {'repo_html_url': repo_html_url, 'successful_uploads': successful_uploads}
+        context = {'repo_html_url': repo_html_url, 'processed_exports': processed_exports}
+        
         return render(request, 'plugins/gitlab_export_success.html', context, status=200)
     
 
