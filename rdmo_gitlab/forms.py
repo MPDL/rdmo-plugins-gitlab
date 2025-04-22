@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -5,8 +7,8 @@ from django.core.exceptions import ValidationError
 class ExportsChoiceMultiWidget(forms.MultiWidget):
     def __init__(self, attrs=None):
         widgets = {
-            'checkbox': forms.CheckboxInput(),
-            'text': forms.TextInput(),
+            'checkbox': forms.CheckboxInput(attrs={'onchange': 'toggle_option_attributes_visibility(this)'}),
+            'text': forms.TextInput(attrs={'title': _('Special characters will be percent-encoded'), 'oninput': 'hide_check_message(this)'}),
         }
         super().__init__(widgets, attrs)
 
@@ -21,7 +23,7 @@ class ExportsChoiceMultiWidget(forms.MultiWidget):
             return splitted_value
         return [False, '']
     
-    def get_context(self, name, value, checkbox_label, checkbox_id, attrs):
+    def get_context(self, name, value, checkbox_label, checkbox_id, text_id, attrs):
         context = super().get_context(name, value, attrs)
         # value is a list/tuple of values, each corresponding to a widget
         # in self.widgets.
@@ -40,7 +42,7 @@ class ExportsChoiceMultiWidget(forms.MultiWidget):
             
             widget_attrs = final_attrs.copy()
             if widget_name == '_text':
-                widget_attrs.update({'style': 'flex-grow:1;'})
+                widget_attrs.update({'id': text_id, 'style': 'flex-grow:1;'})
             if widget_name == '_checkbox':
                 widget_attrs.update({'id': checkbox_id})
             
@@ -54,12 +56,82 @@ class ExportsChoiceMultiWidget(forms.MultiWidget):
 
 class ExportsChoiceMultiValueField(forms.MultiValueField):
     widget = ExportsChoiceMultiWidget
+
+    def validate_file_path(self, value):
+        min_length = 6
+        max_length = 100
+        pattern = f'[^A-Za-z0-9/-_. ]'
+        errors = []
+        
+        match_obj = re.search(pattern, value)
+        if match_obj is not None:
+            errors.append(_('File path contains special characters. Allowed characters are alphanumeric, slash, hyphen, underscore, period, and blank space'))
+        
+        if len(value) > max_length:
+            errors.append(_(f'File path must have at most {max_length} characters (it has {len(value)})'))
+
+        if len(value) < min_length:
+            errors.append(_(f'File path must have at least {min_length} characters (it has {len(value)})'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
     def __init__(self):
         fields = (
             forms.BooleanField(),
-            forms.CharField(),
+            forms.CharField(validators=[self.validate_file_path]),
         )
         super().__init__(fields)
+
+    def clean(self, value):
+        """
+        Validate every value in the given list. A value is validated against
+        the corresponding Field in self.fields.
+
+        For example, if this MultiValueField was instantiated with
+        fields=(DateField(), TimeField()), clean() would call
+        DateField.clean(value[0]) and TimeField.clean(value[1]).
+        """
+        clean_data = []
+        errors = []
+        if self.disabled and not isinstance(value, list):
+            value = self.widget.decompress(value)
+        if not value or isinstance(value, (list, tuple)):
+            if not value or not [v for v in value if v not in self.empty_values]:
+                if self.required:
+                    errors.append(self.error_messages["required"])
+                else:
+                    return self.compress([])
+        else:
+            errors.append(self.error_messages["invalid"])
+        for i, field in enumerate(self.fields):
+            try:
+                field_value = value[i]
+            except IndexError:
+                field_value = None
+            if field_value in self.empty_values:
+                if self.require_all_fields:
+                    if self.required:
+                        errors.append(_('A file path is required'))
+                elif field.required:
+                    # add an 'incomplete' error to the list of
+                    # collected errors and skip field cleaning, if a required
+                    # field is empty.
+                    if field.error_messages["incomplete"] not in errors:
+                        errors.append(field.error_messages["incomplete"])
+                    continue
+            try:
+                clean_data.append(field.clean(field_value))
+            except ValidationError as e:
+                # Collect all validation errors in a single list, which we'll
+                # raise at the end of clean(), rather than raising a single
+                # exception for the first error we encounter. Skip duplicates.
+                errors.extend(m for m in e if m not in errors)
+
+        out = self.compress(clean_data)
+        self.validate(out)
+        self.run_validators(out)
+        return out, errors
 
     def compress(self, data_list):
         return ','.join(map(str, data_list))
@@ -71,6 +143,7 @@ class ExportsSelectMultiple(forms.SelectMultiple):
     add_id_index = True
     checked_attribute = {'checked': True}
     option_inherits_attrs = True
+    errors = {}
 
     choice_widget = ExportsChoiceMultiWidget()
 
@@ -110,17 +183,20 @@ class ExportsSelectMultiple(forms.SelectMultiple):
             self.build_attrs(self.attrs, attrs) if self.option_inherits_attrs else {}
         )
         if 'id' in option_attrs:
-            id = self.id_for_label(option_attrs['id'], index)
+            checkbox_id = self.id_for_label(option_attrs['id'], index)
+            text_id = self.id_for_label(f'{option_attrs["id"]}_text', index)
             option_attrs = {}
         if selected:
             option_attrs.update(self.checked_attribute)
-        option_context = widget.get_context(name, value, label, id, option_attrs)
+        option_context = widget.get_context(name, value, label, checkbox_id, text_id, option_attrs)
         choices_to_update = getattr(self, 'choices_to_update', None)
-        option_in_repo = self.choices_to_update[key] if choices_to_update and key in self.choices_to_update.keys() else False
+        option_in_repo = self.choices_to_update[key] if choices_to_update and key in self.choices_to_update.keys() else None
+        option_errors = self.errors[key] if key in self.errors.keys() else None
         
         return {
             'name': name,
             'value': value,
+            'errors': option_errors,
             'subwidgets': option_context['widget']['subwidgets'],
             'selected': selected,
             'option_in_repo': option_in_repo,
@@ -175,12 +251,20 @@ class ExportsMultipleChoiceField(forms.MultipleChoiceField):
         value = self.to_python(value)
 
         if value in self.empty_values and self.required:
-            raise ValidationError(self.error_messages['required'], code='required')
+            # raise ValidationError(self.error_messages['required'], code='required')
+            raise ValidationError(_('At least one choice must be selected'))
 
         for multivalue in value:
             choice_key, text_value = multivalue.split(',')
             if choice_key in self.choice_names:
-                out = self.choice_field.clean([True, text_value])
+                out, errors = self.choice_field.clean([True, text_value])
+                if len(errors) > 0:
+                    self.widget.errors[choice_key] = errors
+                else:
+                    self.widget.errors.pop(choice_key, None)
+        if len(self.widget.errors) > 0:
+            raise ValidationError(_('At least one of the selected choices is invalid'))
+        
         return value
 
 class GitLabExportForm(forms.Form):
