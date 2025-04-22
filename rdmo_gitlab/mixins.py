@@ -64,8 +64,8 @@ class GitLabProviderMixin(OauthProviderMixin):
     
     # https://docs.gitlab.com/api/oauth2/
     def validate_access_token(self, request, access_token):
-        print('validate_access_token()')
-        print(f'    access_token: {access_token}')
+        # print('validate_access_token()')
+        # print(f'    access_token: {access_token}')
         if access_token is None: return
 
         url = '{gitlab_url}/oauth/token/info'.format(
@@ -82,11 +82,12 @@ class GitLabProviderMixin(OauthProviderMixin):
             response.raise_for_status()
         except:
             access_token = self.refresh_access_token(request)
+            return access_token
 
         expires_in = response.json().get('expires_in', None)
-        print(f'    expires_in: {expires_in}')
+        # print(f'    expires_in: {expires_in}')
         if expires_in and expires_in < 900: # 15 min
-            print(f'    access_token still valid, but expires in less than 15 min')
+            # print(f'    access_token still valid, but expires in less than 15 min')
             access_token = self.refresh_access_token(request)
 
         return access_token
@@ -101,29 +102,24 @@ class GitLabProviderMixin(OauthProviderMixin):
         }
     
     def refresh_access_token(self, request):
-        print('refresh_access_token()')
+        # print('refresh_access_token()')
         'Update access token with refresh_token if it exists'
 
         refresh_token = self.pop_from_session(request, 'refresh_token')
-        print(f'    refresh_token: {refresh_token}')
+        # print(f'    refresh_token: {refresh_token}')
         if refresh_token is None: return
 
         url = self.token_url + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
         response = requests.post(url)
-
+        
         try:
             response.raise_for_status()
-            response_error = response.json().get('error', None)
-            if response_error and response_error == 'invalid_grant':
-                (f'    response_error == invalid_grant')
-                self.pop_from_session(request, 'access_token')
-                return
         except requests.HTTPError as e:
             logger.error('refresh token error: %s (%s)', response.content, response.status_code)
-            raise e
+            return 
 
         response_data = response.json()
-
+        # print(f'    response: {response.json()}')
         # store new access token in session
         access_token = response_data.get('access_token')
         self.store_in_session(request, 'access_token', access_token)
