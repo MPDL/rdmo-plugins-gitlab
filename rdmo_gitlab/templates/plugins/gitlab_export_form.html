@@ -1,23 +1,19 @@
 {% extends 'core/page.html' %}
 {% load i18n %}
 {% load core_tags %}
+{% load compress %}
 {% load static %}
+
+{% block head %}
+    {% compress js %}
+    <script type="text/javascript" src="{% static 'plugins/js/export_form.js' %}" ></script>
+    {% endcompress %}
+{% endblock %}
 
 {% block page %}
 
     <h1>{% blocktrans %}Export to {{ source_title }} {% endblocktrans %}</h1>
 
     {% bootstrap_form submit=submit_label %}
-
-    <script>
-        function select_all_exports(choice_count) {
-            var checkBox = document.getElementById("id_all_exports");
-
-            for (let i=0; i<choice_count; i++) {
-                var choice = document.getElementById(`id_exports_${i}`);
-                choice.checked = checkBox.checked
-            }
-        }
-    </script>
 
 {% endblock %}

@@ -6,13 +6,11 @@
 
     <h1>{% trans 'Successful Export to GitLab' %}</h1>
 
-    {% if successful_uploads %}
-        <ul>
-        {% for upload in successful_uploads %}
-            <li>{{ upload.name }}: {{ upload.success|yesno:_('successfully exported,could not be exported') }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
+    <ul>
+    {% for export in processed_exports %}
+        <li>{{ export.label }}: {{ export.processing_status }}</li>
+    {% endfor %}
+    </ul>
 
     <a href="{{ repo_html_url }}">{% trans 'Go to GitLab repo' %}</a>
 
