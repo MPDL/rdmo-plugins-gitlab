@@ -16,4 +16,14 @@
 
     {% bootstrap_form submit=submit_label %}
 
+    <style>
+        .form-group.field-new_repo_name {
+            display: {{ new_repo_name_display }};
+        }
+
+        .form-group.field-repo {
+            display: {{ repo_display }};
+        }
+    </style>
+
 {% endblock %}
