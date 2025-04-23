@@ -64,6 +64,7 @@ PROJECT_EXPORTS += [
 ```bash
 not working yet!!!!!!!!
 pip install git+https://github.com/MPDL/rdmo-plugins-maus
+```
 
 Usage
 -----
