@@ -127,36 +127,6 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         return access_token
     
-    def make_request(self, request, method, url, apply_data_processing=False, **kwargs):
-        methods = ['get', 'post', 'put']
-        if method in methods:
-            return super().make_request(request, method, url, apply_data_processing, **kwargs)
-        
-        if method != 'head':
-            raise ValueError(f"Unsupported method: {method}")
-
-        access_token = self.get_from_session(request, 'access_token')
-        if access_token:
-            # if the access_token is available make request to the upstream service
-            logger.debug('%s: %s', method, url)
-
-            headers = self.get_authorization_headers(access_token)
-            response = requests.head(url, headers=headers)
-
-            if response.status_code == 401:
-                logger.warning('%s forbidden: %s (%s)', method, response.content, response.status_code)
-            elif response.status_code == 404:
-                return response
-            else:
-                try:
-                    response.raise_for_status()
-                    return response
-
-                except requests.HTTPError:
-                    logger.warning('%s error: %s (%s)', method, response.content, response.status_code)
-
-        return None
-    
     def callback(self, request):
         if request.GET.get('state') != self.pop_from_session(request, 'state'):
             return render(request, 'core/error.html', {
