@@ -3,7 +3,6 @@ import json
 import logging
 import requests
 
-# from io import BytesIO
 from urllib.parse import quote
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -57,11 +56,9 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.authorize(self.request)
         
-        new_repo_name_display = None
-        repo_display = 'block'
         context = {
-            'new_repo_name_display': new_repo_name_display,
-            'repo_display': repo_display,
+            'new_repo_name_display': None,
+            'repo_display': 'block',
             'form': GitLabExportForm(export_choices=self.export_choices),
             'source_title': self.gitlab_url,
             'submit_label': _('Proceed')
@@ -92,16 +89,13 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                 
                 selected_choices = [c for c in self.export_choices if c[1][1] in choices_to_update.keys()]
                 form = GitLabExportForm(self.request.POST, export_choices=selected_choices, export_choices_to_update=choices_to_update)
-                new_repo_name_display = None
-                repo_display = 'block'
                 context = {
-                    'new_repo_name_display': new_repo_name_display,
-                    'repo_display': repo_display,
+                    'new_repo_name_display': None,
+                    'repo_display': 'block',
                     'form': form, 
                     'source_title': self.gitlab_url, 
                     'submit_label':_('Export to GitLab')
-                }
-                
+                }             
                 return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
             url, request_data = self.process_form_data(form.cleaned_data, choices_to_update)
@@ -113,11 +107,9 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                     'errors': [_('Export choices could not be created or repository content would have been overwritten without a warning')]
                 }, status=200)
         
-        new_repo_name_display = 'block' if form.cleaned_data['new_repo'] else None
-        repo_display = None if form.cleaned_data['new_repo'] else 'block'
         context = {
-            'new_repo_name_display': new_repo_name_display,
-            'repo_display': repo_display,
+            'new_repo_name_display': 'block' if form.cleaned_data['new_repo'] else None,
+            'repo_display': None if form.cleaned_data['new_repo'] else 'block',
             'form': form, 
             'source_title': self.gitlab_url, 
             'submit_label': _('Export to GitLab') if form.cleaned_data['new_repo'] else _('Proceed')
@@ -162,30 +154,6 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
 
         return response
     
-    # def render_export_content(self, choice_key):
-    #     response, file_name = self.render_export(choice_key)
-    #     choice_content = []
-    #     try:
-    #         if file_name.endswith('.zip'):
-    #             unzipped_files = unzip(BytesIO(response.content))
-    #             for name, c in unzipped_files.items():
-    #                 base64_bytes_of_content = base64.b64encode(c)
-    #                 base64_string_of_content = base64_bytes_of_content.decode('utf-8')
-    #                 choice_content.append((base64_string_of_content, name))
-
-    #         else:
-    #             binary = response.content
-    #             base64_bytes_of_content = base64.b64encode(binary)
-    #             base64_string_of_content = base64_bytes_of_content.decode('utf-8')
-    #             choice_content.append((base64_string_of_content, file_name))
-    #         # # print("    content creation worked")
-    #     except:
-    #         logger.warning(f'No content created for {choice_key}')
-    #         # # print("    content creation didn't worked")
-    #         pass
-
-    #     return choice_content
-
     def render_export_content(self, choice_key):
         response = self.render_export(choice_key)
         try:            
