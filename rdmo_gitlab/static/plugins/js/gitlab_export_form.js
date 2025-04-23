@@ -1,3 +1,20 @@
+function toggleRepoFields(checkbox_id, checked_collection_class, unchecked_collection_class, checked_submit_value, unchecked_submit_value) {
+    const checkBox = document.getElementById(checkbox_id);
+    var checkedCollection = document.getElementsByClassName(checked_collection_class);
+    var uncheckedCollection = document.getElementsByClassName(unchecked_collection_class);
+    var submitButton = document.getElementsByClassName('btn btn-primary');
+    // console.log(`checked_submit_value: ${checked_submit_value}`)
+    if (checkBox.checked == true){
+        checkedCollection[0].style.display = 'block';
+        uncheckedCollection[0].style.display = 'none';
+        submitButton[0].value = checked_submit_value;
+    } else {
+        checkedCollection[0].style.display = 'none';
+        uncheckedCollection[0].style.display = 'block';
+        submitButton[0].value = unchecked_submit_value;
+    }
+}
+
 function select_all_exports(choice_count) {
     // console.log('select_all_exports()')
     var checkBox = document.getElementById('id_all_exports');
