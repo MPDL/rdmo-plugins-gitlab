@@ -280,13 +280,31 @@ class GitLabExportForm(forms.Form):
                 attrs={'onclick': f'select_all_exports({len(export_choices)})'}
             )
 
-    repo = forms.CharField(label=_('GitLab repository'),
-                           help_text=_('Please use the form username/repository or organization/repository.'))
+    new_repo = forms.BooleanField (
+        label=_('Create new repository'),
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                'onclick': f'''toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo", "{_('Export to GitLab')}", "{_('Proceed')}")'''
+        })
+    )
+
+    new_repo_name = forms.CharField(
+        label=_('Name for the new repository'),
+        required=False
+    )
+
+    repo = forms.CharField(
+        label=_('GitLab repository'),
+        help_text=_('Please use the form username/repository or organization/repository.'),
+        required=False
+    )
     
     exports = ExportsMultipleChoiceField(
         label=_('Export choices'),
         help_text=_('Warning: Existing content in GitLab will be overwritten'),
     )
+
     all_exports = forms.BooleanField(
         label=_('Select all export choices'),
         required=False,
