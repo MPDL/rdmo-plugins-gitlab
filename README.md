@@ -55,7 +55,7 @@ For the export:
 
 ```python
 PROJECT_EXPORTS += [
-    ('github', _('Github'), 'rdmo_github.providers.GitHubExportProvider'),
+    ('gitlab', _('GitLab'), 'rdmo_github.providers.GitLabExportProvider'),
 ]
 ```
 
