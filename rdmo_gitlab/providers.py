@@ -77,6 +77,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
         if form.is_valid():
             new_repo = form.cleaned_data['new_repo']
 
+            # 1. Check file paths to warn user if repo files will be overwritten
             choices_to_update = self.get_from_session(self.request, 'gitlab_export_choices_to_update')
             if not new_repo and choices_to_update is None:
                 choices_to_update, checked_export_choices = self.check_file_paths(
@@ -98,6 +99,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                 }             
                 return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
+            # 2. Create file content for selected choices and export them
             url, request_data = self.process_form_data(form.cleaned_data, choices_to_update)
             if url is not None and request_data is not None:
                 return self.make_request(self.request, 'post', url, json=request_data)
@@ -107,12 +109,13 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                     'errors': [_('Export choices could not be created or repository content would have been overwritten without a warning')]
                 }, status=200)
         
+        new_repo = True if 'new_repo' in form.data else False
         context = {
-            'new_repo_name_display': 'block' if form.cleaned_data['new_repo'] else None,
-            'repo_display': None if form.cleaned_data['new_repo'] else 'block',
+            'new_repo_name_display': 'block' if new_repo else None,
+            'repo_display': None if new_repo else 'block',
             'form': form, 
             'source_title': self.gitlab_url, 
-            'submit_label': _('Export to GitLab') if form.cleaned_data['new_repo'] else _('Proceed')
+            'submit_label': _('Export to GitLab') if new_repo else _('Proceed')
         }
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
     
