@@ -57,7 +57,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
             return self.authorize(self.request)
         
         context = {
-            'new_repo_name_display': None,
+            'new_repo_name_display': 'none',
             'repo_display': 'block',
             'form': GitLabExportForm(export_choices=self.export_choices),
             'source_title': self.gitlab_url,
@@ -91,7 +91,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
                 selected_choices = [c for c in self.export_choices if c[1][1] in choices_to_update.keys()]
                 form = GitLabExportForm(self.request.POST, export_choices=selected_choices, export_choices_to_update=choices_to_update)
                 context = {
-                    'new_repo_name_display': None,
+                    'new_repo_name_display': 'none',
                     'repo_display': 'block',
                     'form': form, 
                     'source_title': self.gitlab_url, 
@@ -111,8 +111,8 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
         
         new_repo = True if 'new_repo' in form.data else False
         context = {
-            'new_repo_name_display': 'block' if new_repo else None,
-            'repo_display': None if new_repo else 'block',
+            'new_repo_name_display': 'block' if new_repo else 'none',
+            'repo_display': 'none' if new_repo else 'block',
             'form': form, 
             'source_title': self.gitlab_url, 
             'submit_label': _('Export to GitLab') if new_repo else _('Proceed')
