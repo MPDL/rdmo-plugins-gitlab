@@ -133,7 +133,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
             choice_key, file_path = e.split(',')
             url = '{api_url}/projects/{repo}/repository/files/{path}?ref={ref}'.format(
                 api_url=self.api_url,
-                repo=quote(repo.replace('https://gitlab.com/', ''), safe=''),
+                repo=quote(repo.removesuffix('/').replace('https://gitlab.com/', ''), safe=''),
                 path=quote(file_path, safe=''),
                 ref=quote(branch, safe='')
             )
@@ -225,7 +225,7 @@ class GitLabExportProvider(GitLabProviderMixin, MAUSExport):
 
         self.store_in_session(self.request, 'gitlab_processed_exports', processed_exports)
 
-        repo = 'repo_placeholder' if new_repo else quote(form_data['repo'].replace('https://gitlab.com/', ''), safe='')
+        repo = 'repo_placeholder' if new_repo else quote(form_data['repo'].removesuffix('/').replace('https://gitlab.com/', ''), safe='')
         url = '{api_url}/projects/{repo}/repository/commits'.format(
                 api_url=self.api_url,
                 repo=repo,
@@ -268,13 +268,13 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
 
     @property
     def description(self):
-        return _(f'This integration allow the creation of issues in arbitrary repositories on {self.gitlab_url}. '
+        return _(f'This integration allows the creation of issues in arbitrary repositories on {self.gitlab_url}. '
                  'The upload of attachments is not supported by GitLab.')
 
     def get_post_url(self, request, issue, integration, subject, message, attachments):
         repo_url = integration.get_option_value('repo_url')
         if repo_url:
-            repo = repo_url.replace(self.gitlab_url, '').strip('/')
+            repo = repo_url.removesuffix('/').replace(self.gitlab_url, '')
             return '{}/api/v4/projects/{}/issues'.format(self.gitlab_url, quote(repo, safe=''))
 
     def get_post_data(self, request, issue, integration, subject, message, attachments):
@@ -355,7 +355,7 @@ class GitLabImport(GitLabProviderMixin, RDMOXMLImport):
 
             url = '{api_url}/projects/{repo}/repository/files/{path}?ref={ref}'.format(
                 api_url=self.api_url,
-                repo=quote(form.cleaned_data['repo'], safe=''),
+                repo=quote(form.cleaned_data['repo'].removesuffix('/').replace('https://gitlab.com/', ''), safe=''),
                 path=quote(form.cleaned_data['path'], safe=''),
                 ref=quote(form.cleaned_data['ref'], safe='')
             )

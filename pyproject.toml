@@ -13,13 +13,12 @@ maintainers = [
 description = "GitLab Plugins for RDMO."
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
+license-files = ["LICENSE"]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Environment :: Web Environment',
     'Framework :: Django :: 2.2',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     "Programming Language :: Python :: 3 :: Only",
     'Programming Language :: Python :: 3.8',
@@ -36,8 +35,11 @@ dynamic = ["version"]
 [project.urls]
 repository = "https://github.com/rdmorganiser/rdmo-plugins-gitlab"
 
-[tool.setuptools]
-packages = ["rdmo_gitlab"]
+[tool.setuptools.packages.find]
+include = ["rdmo_gitlab*"]
+
+[tool.setuptools.package-data]
+"*" = ["*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "rdmo_gitlab.__version__"}
