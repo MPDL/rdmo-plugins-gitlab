@@ -1,0 +1,224 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-04-28 12:59+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: forms.py:11
+msgid "Special characters will be percent-encoded"
+msgstr "Sonderzeichen werden prozentkodiert"
+
+#: forms.py:65
+msgid ""
+"File path contains special characters. Allowed characters are alphanumeric, "
+"slash, hyphen, underscore, period, and blank space"
+msgstr ""
+"Der Dateipfad enthält Sonderzeichen. Erlaubte Zeichen sind alphanumerische "
+"Zeichen, Schrägstrich, Bindestrich, Unterstrich, Punkt und Leerzeichen"
+
+#: forms.py:68
+msgid ""
+"File path must have at most {max_length} characters (it has {len(value)})"
+msgstr ""
+"Der Dateipfad darf höchstens {max_length} Zeichen enthalten (er hat "
+"{len(value)})"
+
+#: forms.py:71
+msgid ""
+"File path must have at least {min_length} characters (it has {len(value)})"
+msgstr ""
+"Der Dateipfad muss mindestens {max_length} Zeichen enthalten (er hat "
+"{len(value)})"
+
+#: forms.py:112
+msgid "A file path is required"
+msgstr "Ein Dateipfad ist erforderlich"
+
+#: forms.py:251
+msgid "At least one choice must be selected"
+msgstr "Mindestens eine Option muss ausgewählt werden"
+
+#: forms.py:262
+msgid "At least one of the selected choices is invalid"
+msgstr "Mindestens eine der ausgewählten Optionen ist ungültig"
+
+#: forms.py:274
+msgid ""
+"Warning: Existing content in GitLab will be overwritten. To avoid this, "
+"consider updating the file path or the branch."
+msgstr ""
+"Warnung: Bestehende Inhalte in GitLab werden überschrieben. Um dies zu "
+"vermeiden, können der Dateipfad oder der Branch geändert werden"
+
+#: forms.py:284
+msgid "Create new repository"
+msgstr "Neues Repositorium anlegen"
+
+#: forms.py:293
+msgid "Name for the new repository"
+msgstr "Name des neuen Repositoriums"
+
+#: forms.py:298 forms.py:318
+msgid "GitLab repository"
+msgstr "GitLab-Repositorium"
+
+#: forms.py:299 forms.py:319
+msgid "Please use the form username/repository or organization/repository."
+msgstr ""
+"Bitte verwenden Sie die Form Benutzername/Repositorium oder Organisation/"
+"Repositorium."
+
+#: forms.py:304
+msgid "Export choices"
+msgstr "Optionen zum Exportieren"
+
+#: forms.py:305
+msgid "Warning: Existing content in GitLab will be overwritten"
+msgstr "Warnung: Bestehende Inhalte in GitLab werden überschrieben"
+
+#: forms.py:309
+msgid "Select all export choices"
+msgstr "Alle Optionen auswählen"
+
+#: forms.py:313
+msgid "Branch"
+msgstr "Branch"
+
+#: forms.py:315
+msgid "Commit message"
+msgstr "Commitnachricht"
+
+#: forms.py:320 templates/plugins/exports_multivalue_select_option.html:17
+msgid "File path"
+msgstr "Dateipfad"
+
+#: forms.py:321
+msgid "Branch, tag, or commit"
+msgstr "Branch, Tag, oder Commit"
+
+#: mixins.py:133
+msgid "OAuth authorization not successful"
+msgstr "OAuth-Autorisierung war nicht erfolgreich"
+
+#: mixins.py:134
+msgid "State parameter did not match."
+msgstr "Der Parameter 'state' stimmt nicht überein"
+
+#: mixins.py:166
+msgid "OAuth authorization successful"
+msgstr "OAuth-Autorisierung war erfolgreich"
+
+#: mixins.py:167
+msgid "But no redirect could be found."
+msgstr "Aber kein redirect gefunden"
+
+#: providers.py:27
+msgid "RDMO XML"
+msgstr "RDMO XML"
+
+#: providers.py:28
+msgid "CSV (comma separated)"
+msgstr "CSV (Komma getrennt)"
+
+#: providers.py:29
+msgid "CSV (semicolon separated)"
+msgstr "CSV (Semikolon getrennt)"
+
+#: providers.py:30
+msgid "JSON"
+msgstr "JSON"
+
+#: providers.py:64 providers.py:118
+msgid "Proceed"
+msgstr "Fortfahren"
+
+#: providers.py:98 providers.py:118
+msgid "Export to GitLab"
+msgstr "Nach GitLab exportieren"
+
+#: providers.py:108
+msgid "Something went wrong"
+msgstr "Etwas ist schief gelaufen"
+
+#: providers.py:109
+msgid ""
+"Export choices could not be created or repository content would have been "
+"overwritten without a warning"
+msgstr ""
+"Export-Optionen konnten nicht erstellt werden oder der Inhalt des Repository "
+"wäre ohne Warnung überschrieben worden."
+
+#: providers.py:192
+msgid "not exported - it would have overwritten existing file in repository"
+msgstr ""
+"nicht exportiert - es hätte die bestehende Datei im Repository überschrieben"
+
+#: providers.py:200
+msgid "not exported - it could not be created"
+msgstr "nicht exportiert - es konnte nicht erstellt werden"
+
+#: providers.py:203
+msgid "successfully exported"
+msgstr "erfolgreich exportiert"
+
+#: providers.py:266
+msgid "Add GitLab integration"
+msgstr "GitHub-Integration hinzufügen"
+
+#: providers.py:267
+msgid "Send to GitLab"
+msgstr "An GitLab senden"
+
+#: providers.py:271
+#, python-brace-format
+msgid ""
+"This integration allows the creation of issues in arbitrary repositories on "
+"{self.gitlab_url}. The upload of attachments is not supported by GitLab."
+msgstr ""
+"Diese Integration ermöglicht die Erstellung von Issues in beliebigen "
+"Repositorien in {self.gitlab_url}. Das Hochladen von Anhängen wird von "
+"GitLab nicht unterstützt."
+
+#: providers.py:324
+msgid "The URL of the GitLab repository to send issues to."
+msgstr "Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen"
+
+#: providers.py:329
+msgid "The secret for a GitLab webhook to close a task (optional)."
+msgstr ""
+"Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
+
+#: templates/plugins/exports_multivalue_select_option.html:13
+msgid "File exists and will be overwritten"
+msgstr "Die Datei existiert und wird überschrieben"
+
+#: templates/plugins/exports_multivalue_select_option.html:13
+msgid "File does not exist yet"
+msgstr "Die Datei existiert noch nicht"
+
+#: templates/plugins/gitlab_export_form.html:15
+#, python-format
+msgid "Export to %(source_title)s "
+msgstr "Nach %(source_title)s exportieren"
+
+#: templates/plugins/gitlab_export_success.html:7
+msgid "Successful Export to GitLab"
+msgstr "Erfolgreicher Export nach GitLab"
+
+#: templates/plugins/gitlab_export_success.html:15
+msgid "Go to GitLab repo"
+msgstr "Zum GitLab-Repositorium"
