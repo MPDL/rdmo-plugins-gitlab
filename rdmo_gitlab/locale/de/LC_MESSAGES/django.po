@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 12:59+0000\n"
+"POT-Creation-Date: 2025-05-05 10:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgstr "Mindestens eine Option muss ausgewählt werden"
 msgid "At least one of the selected choices is invalid"
 msgstr "Mindestens eine der ausgewählten Optionen ist ungültig"
 
-#: forms.py:274
+#: forms.py:286
 msgid ""
 "Warning: Existing content in GitLab will be overwritten. To avoid this, "
 "consider updating the file path or the branch."
@@ -64,97 +64,129 @@ msgstr ""
 "Warnung: Bestehende Inhalte in GitLab werden überschrieben. Um dies zu "
 "vermeiden, können der Dateipfad oder der Branch geändert werden"
 
-#: forms.py:284
+#: forms.py:297
 msgid "Create new repository"
 msgstr "Neues Repositorium anlegen"
 
-#: forms.py:293
+#: forms.py:306
 msgid "Name for the new repository"
 msgstr "Name des neuen Repositoriums"
 
-#: forms.py:298 forms.py:318
+#: forms.py:311 forms.py:342 forms.py:348
 msgid "GitLab repository"
 msgstr "GitLab-Repositorium"
 
-#: forms.py:299 forms.py:319
-msgid "Please use the form username/repository or organization/repository."
-msgstr ""
-"Bitte verwenden Sie die Form Benutzername/Repositorium oder Organisation/"
-"Repositorium."
-
-#: forms.py:304
+#: forms.py:317
 msgid "Export choices"
 msgstr "Optionen zum Exportieren"
 
-#: forms.py:305
+#: forms.py:318
 msgid "Warning: Existing content in GitLab will be overwritten"
 msgstr "Warnung: Bestehende Inhalte in GitLab werden überschrieben"
 
-#: forms.py:309
+#: forms.py:322
 msgid "Select all export choices"
 msgstr "Alle Optionen auswählen"
 
-#: forms.py:313
+#: forms.py:327
 msgid "Branch"
 msgstr "Branch"
 
-#: forms.py:315
+#: forms.py:328
+msgid ""
+"An existing branch in the GitLab repository. For a new repository it must be "
+"the default branch \"main\""
+msgstr "Ein bestehender Branch im GitLab-Repositorium. Bei einem neuen Repositorium muss er der Standardbranch „main“ sein."
+
+#: forms.py:332
 msgid "Commit message"
 msgstr "Commitnachricht"
 
-#: forms.py:320 templates/plugins/exports_multivalue_select_option.html:17
+#: forms.py:336
+msgid "Use other repository"
+msgstr "Ein anderes Repositorium benutzen"
+
+#: forms.py:349
+msgid ""
+"GitLab repository you want to import from. If this repository is not public, "
+"you must have access to it"
+msgstr "Das GitLab-Repositorium, aus dem Sie importieren möchten. Wenn dieses "
+"Repositorium nicht öffentlich ist, muss es für Sie zugänglich sein"
+
+#: forms.py:353 templates/plugins/exports_multivalue_select_option.html:17
 msgid "File path"
 msgstr "Dateipfad"
 
-#: forms.py:321
+#: forms.py:355
 msgid "Branch, tag, or commit"
 msgstr "Branch, Tag, oder Commit"
 
-#: mixins.py:133
+#: forms.py:364 forms.py:367
+msgid "A GitLab repository is required"
+msgstr "Ein GitLab-Repositorium ist erforderlich"
+
+#: mixins.py:135
 msgid "OAuth authorization not successful"
 msgstr "OAuth-Autorisierung war nicht erfolgreich"
 
-#: mixins.py:134
+#: mixins.py:136
 msgid "State parameter did not match."
 msgstr "Der Parameter 'state' stimmt nicht überein"
 
-#: mixins.py:166
+#: mixins.py:168
 msgid "OAuth authorization successful"
 msgstr "OAuth-Autorisierung war erfolgreich"
 
-#: mixins.py:167
+#: mixins.py:169
 msgid "But no redirect could be found."
 msgstr "Aber kein redirect gefunden"
 
-#: providers.py:27
+#: mixins.py:210
+msgid ""
+"To connect to GitLab repositories, you first need to authorize the MPDL app."
+msgstr "Die Verbindung zu GitLab-Repositorien erfordert die Autorisierung der MPDL-App."
+
+#: mixins.py:215
+msgid ""
+"These are your most recently updated, accessible GitLab repositories (up to "
+"10 will be shown here). \n"
+"                To add another repository to this list, please update the "
+"repository and reload this page"
+msgstr ""
+"Das sind Ihre zuletzt aktualisierten, zugänglichen GitLab-Repositorien (bis "
+"zu 10 werden hier angezeigt). Um ein weiteres Repositorium zu dieser Liste "
+"hinzuzufügen, aktualisieren Sie das Repositorium und laden Sie diese Seite "
+"neu"
+
+#: providers.py:28
 msgid "RDMO XML"
 msgstr "RDMO XML"
 
-#: providers.py:28
+#: providers.py:29
 msgid "CSV (comma separated)"
 msgstr "CSV (Komma getrennt)"
 
-#: providers.py:29
+#: providers.py:30
 msgid "CSV (semicolon separated)"
 msgstr "CSV (Semikolon getrennt)"
 
-#: providers.py:30
+#: providers.py:31
 msgid "JSON"
 msgstr "JSON"
 
-#: providers.py:64 providers.py:118
+#: providers.py:65 providers.py:127
 msgid "Proceed"
 msgstr "Fortfahren"
 
-#: providers.py:98 providers.py:118
+#: providers.py:107 providers.py:127
 msgid "Export to GitLab"
 msgstr "Nach GitLab exportieren"
 
-#: providers.py:108
+#: providers.py:117
 msgid "Something went wrong"
 msgstr "Etwas ist schief gelaufen"
 
-#: providers.py:109
+#: providers.py:118
 msgid ""
 "Export choices could not be created or repository content would have been "
 "overwritten without a warning"
@@ -162,28 +194,28 @@ msgstr ""
 "Export-Optionen konnten nicht erstellt werden oder der Inhalt des Repository "
 "wäre ohne Warnung überschrieben worden."
 
-#: providers.py:192
+#: providers.py:215
 msgid "not exported - it would have overwritten existing file in repository"
 msgstr ""
 "nicht exportiert - es hätte die bestehende Datei im Repository überschrieben"
 
-#: providers.py:200
+#: providers.py:223
 msgid "not exported - it could not be created"
 msgstr "nicht exportiert - es konnte nicht erstellt werden"
 
-#: providers.py:203
+#: providers.py:226
 msgid "successfully exported"
 msgstr "erfolgreich exportiert"
 
-#: providers.py:266
+#: providers.py:289
 msgid "Add GitLab integration"
-msgstr "GitHub-Integration hinzufügen"
+msgstr "GitLab-Integration hinzufügen"
 
-#: providers.py:267
+#: providers.py:290
 msgid "Send to GitLab"
 msgstr "An GitLab senden"
 
-#: providers.py:271
+#: providers.py:294
 #, python-brace-format
 msgid ""
 "This integration allows the creation of issues in arbitrary repositories on "
@@ -193,11 +225,11 @@ msgstr ""
 "Repositorien in {self.gitlab_url}. Das Hochladen von Anhängen wird von "
 "GitLab nicht unterstützt."
 
-#: providers.py:324
+#: providers.py:301
 msgid "The URL of the GitLab repository to send issues to."
 msgstr "Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen"
 
-#: providers.py:329
+#: providers.py:306
 msgid "The secret for a GitLab webhook to close a task (optional)."
 msgstr ""
 "Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
@@ -222,3 +254,8 @@ msgstr "Erfolgreicher Export nach GitLab"
 #: templates/plugins/gitlab_export_success.html:15
 msgid "Go to GitLab repo"
 msgstr "Zum GitLab-Repositorium"
+
+#~ msgid "Please use the form username/repository or organization/repository."
+#~ msgstr ""
+#~ "Bitte verwenden Sie die Form Benutzername/Repositorium oder Organisation/"
+#~ "Repositorium."
