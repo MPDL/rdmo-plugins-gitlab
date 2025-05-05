@@ -5,8 +5,10 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.urls import reverse
 from django.shortcuts import render
+from django.utils.crypto import get_random_string
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
+from django.utils.safestring import mark_safe
 
 from rdmo.services.providers import OauthProviderMixin
 
@@ -166,3 +168,66 @@ class GitLabProviderMixin(OauthProviderMixin):
             'title': _('OAuth authorization successful'),
             'errors': [_('But no redirect could be found.')]
         }, status=200)
+    
+    def get_repo_choices(self, access_token, minimum_repo_access_level):
+        if access_token is None: return []
+
+        url = '{api_url}/projects?min_access_level={min_access_level}&active={active}&per_page={per_page}&order_by={order_by}'.format(
+                api_url=self.api_url,
+                min_access_level=minimum_repo_access_level,
+                active=True,
+                per_page=10,
+                order_by='updated_at'
+            )
+        # print(f'url: {url}')
+        
+        response = requests.get(url, headers=self.get_authorization_headers(access_token=access_token))
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            # logger.error('error requesting gitlab app repo list: %s (%s)', response.content, response.status_code)
+            logger.error('error requesting gitlab repo list: %s (%s)', response.content, response.status_code)
+            raise e
+
+        print('repo permissions: ')
+        print([{'repo': r.get('web_url'), 'p': r.get('permissions')} for r in response.json()])
+        repos = [r.get('web_url') for r in response.json()]
+
+        repo_choices = [(r, r) for r in repos]
+        # print(f'    repo_choices: {repo_choices}')
+
+        return repo_choices
+    
+    def get_repo_form_field_data(self, request, minimum_repo_access_level):
+        access_token = self.validate_access_token(request, self.get_from_session(request, 'access_token'))
+        repo_choices = self.get_repo_choices(access_token, minimum_repo_access_level)
+        
+        if access_token is None:
+            state = get_random_string(length=32)
+            self.store_in_session(request, 'state', state)
+
+            url = self.authorize_url + '?' + urlencode(self.get_authorize_params(request, state))
+            link_help_text = _('To connect to GitLab repositories, you first need to authorize the MPDL app.')
+            
+            repo_help_text = mark_safe(f'{link_help_text} <a href="{url}">{_("Authorize App")}</a>') if url is not None else ''
+
+        else:    
+            repo_help_text = _("""These are your most recently updated, accessible GitLab repositories (up to 10 will be shown here). 
+                To add another repository to this list, please update the repository and reload this page""")
+        
+        return repo_choices, repo_help_text
+
+    
+    def get_form(self, request, form, *args, **kwargs):
+        repo_access_level_map = {
+            'GitLabExportForm': 30, # developer
+            'GitLabImportForm': 15  # planner
+        }
+        minimum_repo_access_level = repo_access_level_map[form.__name__]
+        repo_choices, repo_help_text = self.get_repo_form_field_data(request, minimum_repo_access_level)
+        return form(
+                *args,
+                **kwargs,
+                repo_choices=repo_choices, 
+                repo_help_text=repo_help_text
+            )
