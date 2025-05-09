@@ -331,6 +331,18 @@ class GitLabExportForm(GitLabBaseForm):
     
     commit_message = forms.CharField(label=_('Commit message'))
 
+    def clean(self):
+        super().clean()
+        new_repo = self.cleaned_data.get('new_repo')
+        new_repo_name = self.cleaned_data.get('new_repo_name')
+        repo = self.cleaned_data.get('repo')
+
+        if new_repo and new_repo_name == '':
+            self.add_error('new_repo_name', ValidationError(_('A name for the new repository is required')))
+        
+        if not new_repo and repo == '':
+            self.add_error('repo', ValidationError(_('A GitLab repository is required')))
+
 class GitLabImportForm(GitLabBaseForm):
     other_repo_check = forms.BooleanField (
         label=_('Use other repository'),
