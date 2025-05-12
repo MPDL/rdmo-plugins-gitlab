@@ -189,8 +189,8 @@ class GitLabProviderMixin(OauthProviderMixin):
             logger.error('error requesting gitlab repo list: %s (%s)', response.content, response.status_code)
             raise e
 
-        print('repo permissions: ')
-        print([{'repo': r.get('web_url'), 'p': r.get('permissions')} for r in response.json()])
+        # print('repo permissions: ')
+        # print([{'repo': r.get('web_url'), 'p': r.get('permissions')} for r in response.json()])
         repos = [r.get('web_url') for r in response.json()]
 
         repo_choices = [(r, r) for r in repos]
