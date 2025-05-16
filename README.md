@@ -16,7 +16,7 @@ Setup
 Install the plugin in your RDMO virtual environment using pip (directly from GitHub):
 
 ```bash
-pip install git+https://github.com/rdmorganiser/rdmo-plugins-gitlab
+pip install git+https://github.com/MPDL/rdmo-plugins-gitlab@dev
 ```
 
 An *App* has to be registered with the particular GitLab instance. For GitLab.com, go to https://gitlab.com/-/profile/applications and create an application with the callback URL `https://<rdmo_url>/services/oauth/gitlab/callback/` and the scope `api`.
@@ -39,7 +39,7 @@ PROJECT_ISSUE_PROVIDERS += [
 ]
 ```
 
-For the import, add the plugin to `PROJECT_IMPORTS` and `PROJECT_IMPORTS_LIST` in `config/settings/local.py`:
+For the import, add the plugin to `PROJECT_IMPORTS` and its key to `PROJECT_IMPORTS_LIST` in `config/settings/local.py`:
 
 ```python
 PROJECT_IMPORTS = [
@@ -55,14 +55,13 @@ For the export:
 
 ```python
 PROJECT_EXPORTS += [
-    ('gitlab', _('GitLab'), 'rdmo_github.providers.GitLabExportProvider'),
+    ('gitlab', _('GitLab'), 'rdmo_gitlab.providers.GitLabExportProvider'),
 ]
 ```
 
-2. Install the helper plugin "MAUS" in your RDMO virtual environment using pip (directly from GitHub). MAUS provides the SMP specific export choices:
+2. Install the plugin [rdmo_maus](https://github.com/MPDL/rdmo-plugins-maus) in your RDMO virtual environment using pip (directly from GitHub). This plugin provides the SMP specific export choices:
 
 ```bash
-not working yet!!!!!!!!
 pip install git+https://github.com/MPDL/rdmo-plugins-maus
 ```
 
