@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 10:44+0000\n"
+"POT-Creation-Date: 2025-09-11 14:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,45 +18,61 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: forms.py:11
+#: forms/custom_fields.py:43
+msgid "A file path is required."
+msgstr "Ein Dateipfad ist erforderlich."
+
+#: forms/custom_fields.py:122
+msgid "At least one choice must be selected."
+msgstr "Mindestens eine Option muss ausgewählt werden."
+
+#: forms/custom_validators.py:13
+#, python-brace-format
+msgid ""
+"{field_name} contains special character(s): \"{spec_chars}\". Allowed "
+"characters are: {allowed_char_name_str}."
+msgstr ""
+"{field_name} beinhaltet Sonderzeichen: \"{spec_chars}\". Diese sind die "
+"erlaubten Zeichen: {allowed_char_name_str}."
+
+#: forms/custom_validators.py:23
+#, python-brace-format
+msgid ""
+"{field_name} must have at most {max_length} characters (it has {len_value})."
+msgstr ""
+"{field_name} darf höchstens {max_length} Zeichen enthalten (er hat "
+"{len_value})."
+
+#: forms/custom_validators.py:33
+#, python-brace-format
+msgid ""
+"{field_name} must have at least {min_length} characters (it has {len_value})."
+msgstr ""
+"{field_name} muss mindestens {min_length} Zeichen enthalten (er hat "
+"{len_value})."
+
+#: forms/custom_validators.py:45
+msgid "Repository name"
+msgstr "Name des Repositoriums"
+
+#: forms/custom_validators.py:49
+msgid "alphanumeric, hyphen, underscore, and period"
+msgstr "alphanumerisch, Bindestrich, Unterstrich und Punkt"
+
+#: forms/custom_validators.py:54 forms/forms.py:110
+#: templates/plugins/exports_multivalue_select_option.html:16
+msgid "File path"
+msgstr "Dateipfad"
+
+#: forms/custom_validators.py:58
+msgid "alphanumeric, slash, hyphen, underscore, and period"
+msgstr "alphanumerisch, Slash, Bindestrich, Unterstrich und Punkt"
+
+#: forms/custom_widgets.py:8
 msgid "Special characters will be percent-encoded"
 msgstr "Sonderzeichen werden prozentkodiert"
 
-#: forms.py:65
-msgid ""
-"File path contains special characters. Allowed characters are alphanumeric, "
-"slash, hyphen, underscore, period, and blank space"
-msgstr ""
-"Der Dateipfad enthält Sonderzeichen. Erlaubte Zeichen sind alphanumerische "
-"Zeichen, Schrägstrich, Bindestrich, Unterstrich, Punkt und Leerzeichen"
-
-#: forms.py:68
-msgid ""
-"File path must have at most {max_length} characters (it has {len(value)})"
-msgstr ""
-"Der Dateipfad darf höchstens {max_length} Zeichen enthalten (er hat "
-"{len(value)})"
-
-#: forms.py:71
-msgid ""
-"File path must have at least {min_length} characters (it has {len(value)})"
-msgstr ""
-"Der Dateipfad muss mindestens {max_length} Zeichen enthalten (er hat "
-"{len(value)})"
-
-#: forms.py:112
-msgid "A file path is required"
-msgstr "Ein Dateipfad ist erforderlich"
-
-#: forms.py:251
-msgid "At least one choice must be selected"
-msgstr "Mindestens eine Option muss ausgewählt werden"
-
-#: forms.py:262
-msgid "At least one of the selected choices is invalid"
-msgstr "Mindestens eine der ausgewählten Optionen ist ungültig"
-
-#: forms.py:286
+#: forms/forms.py:28
 msgid ""
 "Warning: Existing content in GitLab will be overwritten. To avoid this, "
 "consider updating the file path or the branch."
@@ -64,158 +80,173 @@ msgstr ""
 "Warnung: Bestehende Inhalte in GitLab werden überschrieben. Um dies zu "
 "vermeiden, können der Dateipfad oder der Branch geändert werden"
 
-#: forms.py:297
+#: forms/forms.py:39
 msgid "Create new repository"
 msgstr "Neues Repositorium anlegen"
 
-#: forms.py:306
+#: forms/forms.py:48
 msgid "Name for the new repository"
 msgstr "Name des neuen Repositoriums"
 
-#: forms.py:311 forms.py:342 forms.py:348
+#: forms/forms.py:49
+msgid ""
+"Unique name for the new repository. No other of your repositories may have "
+"the same name, otherwise the export will fail."
+msgstr "Eindeutiger Name für das neue Repositorium. Kein anderes Ihrer Repositorien darf denselben Namen haben, da sonst der Export fehlschlägt."
+
+#: forms/forms.py:55 forms/forms.py:98 forms/forms.py:104
 msgid "GitLab repository"
 msgstr "GitLab-Repositorium"
 
-#: forms.py:317
+#: forms/forms.py:61
 msgid "Export choices"
 msgstr "Optionen zum Exportieren"
 
-#: forms.py:318
-msgid "Warning: Existing content in GitLab will be overwritten"
-msgstr "Warnung: Bestehende Inhalte in GitLab werden überschrieben"
+#: forms/forms.py:62
+msgid "Warning: Existing content in GitLab will be overwritten."
+msgstr "Warnung: Bestehende Inhalte in GitLab werden überschrieben."
 
-#: forms.py:322
+#: forms/forms.py:66
 msgid "Select all export choices"
 msgstr "Alle Optionen auswählen"
 
-#: forms.py:327
+#: forms/forms.py:71
 msgid "Branch"
 msgstr "Branch"
 
-#: forms.py:328
+#: forms/forms.py:72
 msgid ""
 "An existing branch in the GitLab repository. For a new repository it must be "
-"the default branch \"main\""
-msgstr "Ein bestehender Branch im GitLab-Repositorium. Bei einem neuen Repositorium muss er der Standardbranch „main“ sein."
+"the default branch \"main\"."
+msgstr ""
+"Ein bestehender Branch im GitLab-Repositorium. Bei einem neuen Repositorium "
+"muss er der Standardbranch „main“ sein."
 
-#: forms.py:332
+#: forms/forms.py:76
 msgid "Commit message"
 msgstr "Commitnachricht"
 
-#: forms.py:336
+#: forms/forms.py:85
+msgid "A name for the new repository is required."
+msgstr "Ein Name für das neue Repositorium ist erforderlich."
+
+#: forms/forms.py:88 forms/forms.py:126 forms/forms.py:129
+msgid "A GitLab repository is required."
+msgstr "Ein GitLab-Repositorium ist erforderlich."
+
+#: forms/forms.py:92
 msgid "Use other repository"
 msgstr "Ein anderes Repositorium benutzen"
 
-#: forms.py:349
+#: forms/forms.py:105
 msgid ""
-"GitLab repository you want to import from. If this repository is not public, "
-"you must have access to it"
-msgstr "Das GitLab-Repositorium, aus dem Sie importieren möchten. Wenn dieses "
-"Repositorium nicht öffentlich ist, muss es für Sie zugänglich sein"
+"URL of GitLab repository you want to import from. If this repository is not "
+"public, you must have access to it."
+msgstr ""
+"URL des GitLab-Repositoriums, aus dem Sie importieren möchten. Wenn dieses "
+"Repositorium nicht öffentlich ist, muss es für Sie zugänglich sein."
 
-#: forms.py:353 templates/plugins/exports_multivalue_select_option.html:17
-msgid "File path"
-msgstr "Dateipfad"
+#: forms/forms.py:111
+msgid ""
+"The import file's relative path in the repository. The file must be in XML "
+"format."
+msgstr ""
+"Der relative Pfad der Importdatei im Repository. Die Datei muss im XML-"
+"Format vorliegen."
 
-#: forms.py:355
+#: forms/forms.py:115
 msgid "Branch, tag, or commit"
 msgstr "Branch, Tag, oder Commit"
 
-#: forms.py:364 forms.py:367
-msgid "A GitLab repository is required"
-msgstr "Ein GitLab-Repositorium ist erforderlich"
+#: mixins.py:91 mixins.py:125
+msgid "GitLab callback error"
+msgstr "GitLab-Callback-Fehler"
 
-#: mixins.py:135
-msgid "OAuth authorization not successful"
-msgstr "OAuth-Autorisierung war nicht erfolgreich"
-
-#: mixins.py:136
+#: mixins.py:92
 msgid "State parameter did not match."
-msgstr "Der Parameter 'state' stimmt nicht überein"
+msgstr "Der Parameter 'state' stimmt nicht überein."
 
-#: mixins.py:168
-msgid "OAuth authorization successful"
-msgstr "OAuth-Autorisierung war erfolgreich"
-
-#: mixins.py:169
-msgid "But no redirect could be found."
-msgstr "Aber kein redirect gefunden"
+#: mixins.py:126
+msgid "No redirect could be found."
+msgstr "Kein redirect gefunden."
 
 #: mixins.py:210
 msgid ""
 "To connect to GitLab repositories, you first need to authorize the MPDL app."
-msgstr "Die Verbindung zu GitLab-Repositorien erfordert die Autorisierung der MPDL-App."
+msgstr ""
+"Die Verbindung zu GitLab-Repositorien erfordert die Autorisierung der MPDL-"
+"App."
 
 #: mixins.py:215
 msgid ""
 "These are your most recently updated, accessible GitLab repositories (up to "
 "10 will be shown here). \n"
 "                To add another repository to this list, please update the "
-"repository and reload this page"
+"repository and reload this page."
 msgstr ""
 "Das sind Ihre zuletzt aktualisierten, zugänglichen GitLab-Repositorien (bis "
 "zu 10 werden hier angezeigt). Um ein weiteres Repositorium zu dieser Liste "
 "hinzuzufügen, aktualisieren Sie das Repositorium und laden Sie diese Seite "
-"neu"
+"neu."
 
-#: providers.py:28
+#: providers/exports.py:26
 msgid "RDMO XML"
 msgstr "RDMO XML"
 
-#: providers.py:29
+#: providers/exports.py:27
 msgid "CSV (comma separated)"
 msgstr "CSV (Komma getrennt)"
 
-#: providers.py:30
+#: providers/exports.py:28
 msgid "CSV (semicolon separated)"
 msgstr "CSV (Semikolon getrennt)"
 
-#: providers.py:31
+#: providers/exports.py:29
 msgid "JSON"
 msgstr "JSON"
 
-#: providers.py:65 providers.py:127
+#: providers/exports.py:64 providers/exports.py:102
 msgid "Proceed"
 msgstr "Fortfahren"
 
-#: providers.py:107 providers.py:127
-msgid "Export to GitLab"
-msgstr "Nach GitLab exportieren"
-
-#: providers.py:117
+#: providers/exports.py:92
 msgid "Something went wrong"
 msgstr "Etwas ist schief gelaufen"
 
-#: providers.py:118
+#: providers/exports.py:93
 msgid ""
 "Export choices could not be created or repository content would have been "
-"overwritten without a warning"
+"overwritten without a warning."
 msgstr ""
 "Export-Optionen konnten nicht erstellt werden oder der Inhalt des Repository "
 "wäre ohne Warnung überschrieben worden."
 
-#: providers.py:215
-msgid "not exported - it would have overwritten existing file in repository"
+#: providers/exports.py:102 providers/exports.py:153
+msgid "Export to GitLab"
+msgstr "Nach GitLab exportieren"
+
+#: providers/exports.py:206
+msgid "not exported - it would have overwritten existing file in repository."
 msgstr ""
-"nicht exportiert - es hätte die bestehende Datei im Repository überschrieben"
+"nicht exportiert - es hätte die bestehende Datei im Repository überschrieben."
 
-#: providers.py:223
-msgid "not exported - it could not be created"
-msgstr "nicht exportiert - es konnte nicht erstellt werden"
+#: providers/exports.py:214
+msgid "not exported - it could not be created."
+msgstr "nicht exportiert - es konnte nicht erstellt werden."
 
-#: providers.py:226
-msgid "successfully exported"
-msgstr "erfolgreich exportiert"
+#: providers/exports.py:217
+msgid "successfully exported."
+msgstr "erfolgreich exportiert."
 
-#: providers.py:289
+#: providers/exports.py:282
 msgid "Add GitLab integration"
 msgstr "GitLab-Integration hinzufügen"
 
-#: providers.py:290
+#: providers/exports.py:283
 msgid "Send to GitLab"
 msgstr "An GitLab senden"
 
-#: providers.py:294
+#: providers/exports.py:287
 #, python-brace-format
 msgid ""
 "This integration allows the creation of issues in arbitrary repositories on "
@@ -225,37 +256,34 @@ msgstr ""
 "Repositorien in {self.gitlab_url}. Das Hochladen von Anhängen wird von "
 "GitLab nicht unterstützt."
 
-#: providers.py:301
+#: providers/exports.py:294
 msgid "The URL of the GitLab repository to send issues to."
-msgstr "Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen"
+msgstr "Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen."
 
-#: providers.py:306
+#: providers/exports.py:299
 msgid "The secret for a GitLab webhook to close a task (optional)."
 msgstr ""
 "Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
 
-#: templates/plugins/exports_multivalue_select_option.html:13
+#: templates/plugins/exports_multivalue_select_option.html:12
 msgid "File exists and will be overwritten"
 msgstr "Die Datei existiert und wird überschrieben"
 
-#: templates/plugins/exports_multivalue_select_option.html:13
+#: templates/plugins/exports_multivalue_select_option.html:12
 msgid "File does not exist yet"
 msgstr "Die Datei existiert noch nicht"
 
-#: templates/plugins/gitlab_export_form.html:15
+#: templates/plugins/gitlab_export_form.html:12
 #, python-format
 msgid "Export to %(source_title)s "
 msgstr "Nach %(source_title)s exportieren"
 
-#: templates/plugins/gitlab_export_success.html:7
-msgid "Successful Export to GitLab"
-msgstr "Erfolgreicher Export nach GitLab"
+#: templates/plugins/gitlab_export_success.html:6
+#, python-format
+msgid "Successful Export to %(source_title)s"
+msgstr "Erfolgreicher Export nach %(source_title)s"
 
-#: templates/plugins/gitlab_export_success.html:15
-msgid "Go to GitLab repo"
-msgstr "Zum GitLab-Repositorium"
-
-#~ msgid "Please use the form username/repository or organization/repository."
-#~ msgstr ""
-#~ "Bitte verwenden Sie die Form Benutzername/Repositorium oder Organisation/"
-#~ "Repositorium."
+#: templates/plugins/gitlab_export_success.html:14
+#, python-format
+msgid "Go to %(source_title)s repo"
+msgstr "Zum %(source_title)s-Repositorium"

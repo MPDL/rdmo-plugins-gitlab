@@ -1,17 +1,16 @@
 {% extends 'core/page.html' %}
-{% load i18n %}
-{% load core_tags %}
+{% load i18n core_tags %}
 
 {% block page %}
 
-    <h1>{% trans 'Successful Export to GitLab' %}</h1>
+    <h1>{% blocktrans %}Successful Export to {{ source_title }}{% endblocktrans %}</h1>
 
     <ul>
-    {% for export in processed_exports %}
-        <li>{{ export.label }}: {{ export.processing_status }}</li>
-    {% endfor %}
+        {% for export in processed_exports %}
+            <li>{{ export.label }}: {{ export.processing_status }}</li>
+        {% endfor %}
     </ul>
 
-    <a href="{{ repo_html_url }}">{% trans 'Go to GitLab repo' %}</a>
+    <a href="{{ repo_html_url }}">{% blocktrans %}Go to {{ source_title }} repo{% endblocktrans %}</a>
 
 {% endblock %}

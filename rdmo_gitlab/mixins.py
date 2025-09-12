@@ -1,6 +1,6 @@
-import requests
 import logging
-from urllib.parse import urlencode
+import requests
+from urllib.parse import urlencode, quote
 
 from django.conf import settings
 from django.urls import reverse
@@ -64,36 +64,6 @@ class GitLabProviderMixin(OauthProviderMixin):
             'redirect_uri': request.build_absolute_uri(self.redirect_path)
         }
     
-    # https://docs.gitlab.com/api/oauth2/
-    def validate_access_token(self, request, access_token):
-        # print('validate_access_token()')
-        # print(f'    access_token: {access_token}')
-        if access_token is None: return
-
-        url = '{gitlab_url}/oauth/token/info'.format(
-            gitlab_url=self.gitlab_url
-        )
-        # print(f'    url: {url}')
-        response = requests.get(
-            url,
-            headers=self.get_authorization_headers(access_token)
-        )
-        # print(f'    response: {response.json()}')
-
-        try:
-            response.raise_for_status()
-        except:
-            access_token = self.refresh_access_token(request)
-            return access_token
-
-        expires_in = response.json().get('expires_in', None)
-        # print(f'    expires_in: {expires_in}')
-        if expires_in and expires_in < 900: # 15 min
-            # print(f'    access_token still valid, but expires in less than 15 min')
-            access_token = self.refresh_access_token(request)
-
-        return access_token
-    
     def get_refresh_token_params(self, request, refresh_token):
         return {
             'client_id': self.client_id,
@@ -103,36 +73,22 @@ class GitLabProviderMixin(OauthProviderMixin):
             'redirect_uri': request.build_absolute_uri(self.redirect_path),
         }
     
-    def refresh_access_token(self, request):
-        # print('refresh_access_token()')
-        'Update access token with refresh_token if it exists'
-
-        refresh_token = self.pop_from_session(request, 'refresh_token')
-        # print(f'    refresh_token: {refresh_token}')
-        if refresh_token is None: return
-
-        url = self.token_url + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
-        response = requests.post(url)
+    def get_request_url(self, repo, path, ref=None):
+        url = '{api_url}/projects/{repo}/repository/files/{path}'.format(
+                api_url=self.api_url,
+                repo=quote(repo.replace(self.gitlab_url, '').strip('/'), safe=''),
+                path=quote(path, safe='')
+            )
         
-        try:
-            response.raise_for_status()
-        except requests.HTTPError as e:
-            logger.error('refresh token error: %s (%s)', response.content, response.status_code)
-            return 
+        if ref:
+            url += '?ref={ref}'.format(ref=quote(ref, safe=''))
 
-        response_data = response.json()
-        # print(f'    response: {response.json()}')
-        # store new access token in session
-        access_token = response_data.get('access_token')
-        self.store_in_session(request, 'access_token', access_token)
-        self.store_in_session(request, 'refresh_token', response_data.get('refresh_token'))
-
-        return access_token
+        return url
     
     def callback(self, request):
         if request.GET.get('state') != self.pop_from_session(request, 'state'):
             return render(request, 'core/error.html', {
-                'title': _('OAuth authorization not successful'),
+                'title': _('GitLab callback error'),
                 'errors': [_('State parameter did not match.')]
             }, status=200)
 
@@ -149,6 +105,7 @@ class GitLabProviderMixin(OauthProviderMixin):
             raise e
 
         response_data = response.json()
+        
         # store access token in session
         self.store_in_session(request, 'access_token', response_data.get('access_token'))
         self.store_in_session(request, 'refresh_token', response_data.get('refresh_token', None))
@@ -165,9 +122,57 @@ class GitLabProviderMixin(OauthProviderMixin):
             pass
         
         return render(request, 'core/error.html', {
-            'title': _('OAuth authorization successful'),
-            'errors': [_('But no redirect could be found.')]
+            'title': _('GitLab callback error'),
+            'errors': [_('No redirect could be found.')]
         }, status=200)
+    
+    # https://docs.gitlab.com/api/oauth2/
+    def validate_access_token(self, request, access_token):
+        if access_token is None: return
+
+        url = '{gitlab_url}/oauth/token/info'.format(
+            gitlab_url=self.gitlab_url
+        )
+        response = requests.get(
+            url,
+            headers=self.get_authorization_headers(access_token)
+        )
+
+        try:
+            response.raise_for_status()
+        except:
+            access_token = self.refresh_access_token(request)
+            return access_token
+
+        expires_in = response.json().get('expires_in', None)
+        if expires_in and expires_in < 900: # 15 min
+            access_token = self.refresh_access_token(request)
+
+        return access_token
+    
+    def refresh_access_token(self, request):
+        'Update access token with refresh_token if it exists'
+
+        refresh_token = self.pop_from_session(request, 'refresh_token')
+        if refresh_token is None: return
+
+        url = self.token_url + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
+        response = requests.post(url)
+        
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            logger.error('GitLab refresh token error: %s (%s)', response.content, response.status_code)
+            return 
+
+        response_data = response.json()
+
+        # store new access token in session
+        access_token = response_data.get('access_token')
+        self.store_in_session(request, 'access_token', access_token)
+        self.store_in_session(request, 'refresh_token', response_data.get('refresh_token'))
+
+        return access_token
     
     def get_repo_choices(self, access_token, minimum_repo_access_level):
         if access_token is None: return []
@@ -179,23 +184,18 @@ class GitLabProviderMixin(OauthProviderMixin):
                 per_page=10,
                 order_by='updated_at'
             )
-        # print(f'url: {url}')
         
         response = requests.get(url, headers=self.get_authorization_headers(access_token=access_token))
         try:
             response.raise_for_status()
         except requests.HTTPError as e:
             # logger.error('error requesting gitlab app repo list: %s (%s)', response.content, response.status_code)
-            logger.error('error requesting gitlab repo list: %s (%s)', response.content, response.status_code)
+            logger.error('Error requesting GitLab repo list: %s (%s)', response.content, response.status_code)
             raise e
 
-        # print('repo permissions: ')
-        # print([{'repo': r.get('web_url'), 'p': r.get('permissions')} for r in response.json()])
         repos = [r.get('web_url') for r in response.json()]
 
-        repo_choices = [(r, r) for r in repos]
-        # print(f'    repo_choices: {repo_choices}')
-
+        repo_choices = [(r, r) for r in repos]        
         return repo_choices
     
     def get_repo_form_field_data(self, request, minimum_repo_access_level):
@@ -212,8 +212,8 @@ class GitLabProviderMixin(OauthProviderMixin):
             repo_help_text = mark_safe(f'{link_help_text} <a href="{url}">{_("Authorize App")}</a>') if url is not None else ''
 
         else:    
-            repo_help_text = _("""These are your most recently updated, accessible GitLab repositories (up to 10 will be shown here). 
-                To add another repository to this list, please update the repository and reload this page""")
+            repo_help_text = _('''These are your most recently updated, accessible GitLab repositories (up to 10 will be shown here). 
+                To add another repository to this list, please update the repository and reload this page.''')
         
         return repo_choices, repo_help_text
 
