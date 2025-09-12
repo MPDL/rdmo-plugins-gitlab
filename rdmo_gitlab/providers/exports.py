@@ -290,7 +290,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     _fields = {
         'repo_url': {
             'key': 'repo_url',
-            # 'placeholder': 'placeholder',
+            'placeholder': 'placeholder',
             'help': _('The URL of the GitLab repository to send issues to.')
         },
         'secret': {
@@ -305,7 +305,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     def get_post_url(self, request, issue, integration, subject, message, attachments):
         repo_url = integration.get_option_value('repo_url')
         if repo_url:
-            repo = repo_url.replace(self.gitlab_url, '').strip('/')
+            repo = quote(repo_url.replace(self.gitlab_url, '').strip('/'), safe='')
             return '{api_url}/api/v4/projects/{repo}/issues'.format(
                 api_url=self.gitlab_url, 
                 repo=repo
