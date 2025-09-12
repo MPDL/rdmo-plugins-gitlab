@@ -76,12 +76,12 @@ class ExportsSelectMultiple(forms.SelectMultiple):
         Each choice consists of a multi widget with a checkbox and a text.
         '''
 
-        if isinstance(value, list) and len(value) == 0:
-            self.errors = {}
-
         selected_option_keys = [v.split(',')[0] for v in value]
         transformed_value = [f'{True},{v.split(",")[1]}' for v in value]
         
+        current_errors = {k: v for k, v in self.errors.items() if k in selected_option_keys}
+        self.errors = current_errors
+
         groups = []
         for index, (option_value, (option_label, option_key)) in enumerate(self.choices):
             i = selected_option_keys.index(option_key) if option_key in selected_option_keys else None
