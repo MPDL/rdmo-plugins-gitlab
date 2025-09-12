@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .custom_fields import ExportsMultipleChoiceField
-from .custom_validators import validate_new_repo_name
+from .custom_validators import validate_new_repo_name, validate_import_file_path
 
 class GitLabBaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -88,6 +88,15 @@ class GitLabExportForm(GitLabBaseForm):
             self.add_error('repo', ValidationError(_('A GitLab repository is required.'), code='required'))
 
 class GitLabImportForm(GitLabBaseForm):
+    def __init__(self, *args, **kwargs):
+        source_title = kwargs.pop('source_title', None)
+        super().__init__(*args, **kwargs)
+
+        if source_title is not None:
+            self.fields['other_repo'].widget = forms.TextInput(
+                attrs={'placeholder': _('{source_title}/example-owner/example-repo').format(source_title=source_title)}
+            )
+
     other_repo_check = forms.BooleanField (
         label=_('Use other repository'),
         required=False,
@@ -108,7 +117,9 @@ class GitLabImportForm(GitLabBaseForm):
     
     path = forms.CharField(
         label=_('File path'),
-        help_text=_("The import file's relative path in the repository. The file must be in XML format.")
+        help_text=_("The import file's relative path in the repository. The file must be in XML format."),
+        widget=forms.TextInput(attrs={'placeholder': _('example_folder/example_xml_file.xml')}),
+        validators=[validate_import_file_path]
     )
 
     ref = forms.CharField(

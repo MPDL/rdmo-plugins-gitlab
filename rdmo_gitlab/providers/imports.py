@@ -26,12 +26,12 @@ class GitLabImport(GitLabProviderMixin, RDMOXMLImport):
             'source_title': self.gitlab_url,
             'repo_display': 'block',
             'other_repo_display': 'none',
-            'form': self.get_form(self.request, GitLabImportForm)
+            'form': self.get_form(self.request, GitLabImportForm, source_title=self.gitlab_url)
         }
         return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
 
     def submit(self):
-        form = self.get_form(self.request, GitLabImportForm, self.request.POST)
+        form = self.get_form(self.request, GitLabImportForm, self.request.POST, source_title=self.gitlab_url)
 
         if 'cancel' in self.request.POST:
             if self.project is None:
