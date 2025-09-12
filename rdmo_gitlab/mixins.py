@@ -77,7 +77,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         url = '{api_url}/projects/{repo}/repository/files/{path}'.format(
                 api_url=self.api_url,
                 repo=quote(repo.replace(self.gitlab_url, '').strip('/'), safe=''),
-                path=quote(path, safe='')
+                path=quote(path.strip('../'), safe='')
             )
         
         if ref:
