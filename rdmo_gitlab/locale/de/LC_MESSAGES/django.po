@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 10:24+0000\n"
+"POT-Creation-Date: 2025-09-15 13:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Ein Dateipfad ist erforderlich."
 msgid "At least one choice must be selected."
 msgstr "Mindestens eine Option muss ausgewählt werden."
 
-#: forms/custom_validators.py:23
+#: forms/custom_validators.py:13
 #, python-brace-format
 msgid ""
 "{field_name} contains special character(s): \"{spec_chars}\". Allowed "
@@ -35,7 +35,7 @@ msgstr ""
 "{field_name} beinhaltet Sonderzeichen: \"{spec_chars}\". Diese sind die "
 "erlaubten Zeichen: {allowed_char_name_str}."
 
-#: forms/custom_validators.py:36
+#: forms/custom_validators.py:23
 #, python-brace-format
 msgid ""
 "{field_name} must have at most {max_length} characters (it has {len_value})."
@@ -43,7 +43,7 @@ msgstr ""
 "{field_name} darf höchstens {max_length} Zeichen enthalten (er hat "
 "{len_value})."
 
-#: forms/custom_validators.py:46
+#: forms/custom_validators.py:33
 #, python-brace-format
 msgid ""
 "{field_name} must have at least {min_length} characters (it has {len_value})."
@@ -51,29 +51,36 @@ msgstr ""
 "{field_name} muss mindestens {min_length} Zeichen enthalten (er hat "
 "{len_value})."
 
-#: forms/custom_validators.py:58
+#: forms/custom_validators.py:45
 msgid "Repository name"
 msgstr "Name des Repositoriums"
 
-#: forms/custom_validators.py:68
+#: forms/custom_validators.py:49
 msgid "alphanumeric, hyphen, underscore, period, plus sign and whitespace"
-msgstr "alphanumerisch, Bindestrich, Unterstrich, Punkt, Pluszeichen und Leerzeichen"
+msgstr ""
+"alphanumerisch, Bindestrich, Unterstrich, Punkt, Pluszeichen und Leerzeichen"
 
-#: forms/custom_validators.py:74
+#: forms/custom_validators.py:60
 #, python-brace-format
-msgid "{field_name} must start with a letter or digit."
+msgid "{field_name} must start with a letter or a digit."
 msgstr "{field_name} muss mit einem Buchstaben oder einer Ziffer beginnen."
 
-#: forms/custom_validators.py:91 forms/forms.py:119
+#: forms/custom_validators.py:68
+#, python-brace-format
+msgid ""
+"{field_name} must not end with hyphen, underscore, period, \".git\" or \".atom\"."
+msgstr "{field_name} darf nicht mit Bidestrich, Unterstrich, Punkt, \".git\" oder \".atom\" enden."
+
+#: forms/custom_validators.py:78 forms/forms.py:119
 #: templates/plugins/exports_multivalue_select_option.html:16
 msgid "File path"
 msgstr "Dateipfad"
 
-#: forms/custom_validators.py:95
+#: forms/custom_validators.py:82
 msgid "alphanumeric, slash, hyphen, underscore, and period"
 msgstr "alphanumerisch, Slash, Bindestrich, Unterstrich und Punkt"
 
-#: forms/custom_validators.py:109
+#: forms/custom_validators.py:96
 msgid "File must be in XML format."
 msgstr "Die Datei muss im XML-Format vorliegen."
 
