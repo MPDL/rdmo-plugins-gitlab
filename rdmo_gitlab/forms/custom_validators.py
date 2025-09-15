@@ -17,7 +17,7 @@ def validate_text_field(
     
     matches = re.findall(not_allowed_pattern, value)
     matches = list(set(matches))
-    if len(matches) > 0 and allowed_char_name_str is not None:
+    if len(matches) > 0 and (special_char_error_message is not None or allowed_char_name_str is not None):
         message = (
             special_char_error_message if special_char_error_message is not None else
             _('{field_name} contains special character(s): "{spec_chars}". Allowed characters are: {allowed_char_name_str}.').format(
