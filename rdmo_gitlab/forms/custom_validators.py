@@ -3,35 +3,22 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-def validate_text_field(
-    field_name, 
-    value,  
-    not_allowed_pattern, 
-    allowed_char_name_str=None,
-    special_char_error_message=None,
-    check_length=True,
-    min_length=None, 
-    max_length=None
-):
+def validate_text_field(field_name, value, min_length, max_length, not_allowed_pattern, allowed_char_name_str):
     errors = []
     
     matches = re.findall(not_allowed_pattern, value)
     matches = list(set(matches))
-    if len(matches) > 0 and (special_char_error_message is not None or allowed_char_name_str is not None):
-        message = (
-            special_char_error_message if special_char_error_message is not None else
+    if len(matches) > 0:
+        errors.append(ValidationError(
             _('{field_name} contains special character(s): "{spec_chars}". Allowed characters are: {allowed_char_name_str}.').format(
                 field_name=field_name,
                 spec_chars='", "'.join(matches),
                 allowed_char_name_str=allowed_char_name_str
-            )
-        )
-        errors.append(ValidationError(
-            message,
+            ),
             code='invalid'
         ))
     
-    if check_length and max_length and len(value) > max_length:
+    if len(value) > max_length:
         errors.append(ValidationError(
             _('{field_name} must have at most {max_length} characters (it has {len_value}).').format(
                 field_name=field_name,
@@ -41,7 +28,7 @@ def validate_text_field(
             code='invalid'
         ))
 
-    if check_length and min_length and len(value) < min_length:
+    if len(value) < min_length:
         errors.append(ValidationError(
             _('{field_name} must have at least {min_length} characters (it has {len_value}).').format(
                 field_name=field_name,
@@ -56,36 +43,36 @@ def validate_text_field(
 
 def validate_new_repo_name(value):
     field_name = _('Repository name')
+    min_length = 1
+    max_length = 50
+    not_allowed_pattern = f'[^A-Za-z0-9\-\_\.+ ]'
+    allowed_char_name_str = _('alphanumeric, hyphen, underscore, period, plus sign and whitespace')
+
     errors = []
     
     try:
-        validate_text_field(
-            field_name=field_name, 
-            value=value, 
-            min_length=1, 
-            max_length=50, 
-            not_allowed_pattern=f'[^A-Za-z0-9\-\_\.+ ]', 
-            allowed_char_name_str=_('alphanumeric, hyphen, underscore, period, plus sign and whitespace')
-        )
+        validate_text_field(field_name, value, min_length, max_length, not_allowed_pattern, allowed_char_name_str)
     except ValidationError as ee:
         errors.extend(e for e in ee.error_list if e not in errors)
 
-    try:
-        special_char_error_message = _('{field_name} must start with a letter or digit.').format(
-            field_name=field_name
-        )
-        validate_text_field(
-            field_name=field_name, 
-            value=value[:1], 
-            not_allowed_pattern=f'[^A-Za-z0-9]',
-            special_char_error_message=special_char_error_message,
-            check_length=False   
-        )
-    except ValidationError as ee:
-        errors.extend(e for e in ee.error_list if e not in errors)
+    if value.startswith(('-', '_', '.', '+')):
+        errors.append(ValidationError(
+            _('{field_name} must start with a letter or a digit.').format(
+                field_name=field_name
+            ),
+            code='invalid'
+        ))
+
+    if value.endswith(('-', '_', '.', '.git', '.atom')):
+        errors.append(ValidationError(
+            _('{field_name} must not end with hyphen, underscore, period, ".git" or ".atom".').format(
+                field_name=field_name
+            ),
+            code='invalid'
+        ))
 
     if len(errors) > 0:
-        raise ValidationError(errors) 
+        raise ValidationError(errors)
 
 def validate_export_file_path(value):
     field_name = _('File path')
