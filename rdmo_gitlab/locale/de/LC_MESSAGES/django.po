@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-12 14:10+0000\n"
+"POT-Creation-Date: 2025-09-15 10:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Ein Dateipfad ist erforderlich."
 msgid "At least one choice must be selected."
 msgstr "Mindestens eine Option muss ausgewählt werden."
 
-#: forms/custom_validators.py:13
+#: forms/custom_validators.py:23
 #, python-brace-format
 msgid ""
 "{field_name} contains special character(s): \"{spec_chars}\". Allowed "
@@ -35,7 +35,7 @@ msgstr ""
 "{field_name} beinhaltet Sonderzeichen: \"{spec_chars}\". Diese sind die "
 "erlaubten Zeichen: {allowed_char_name_str}."
 
-#: forms/custom_validators.py:23
+#: forms/custom_validators.py:36
 #, python-brace-format
 msgid ""
 "{field_name} must have at most {max_length} characters (it has {len_value})."
@@ -43,7 +43,7 @@ msgstr ""
 "{field_name} darf höchstens {max_length} Zeichen enthalten (er hat "
 "{len_value})."
 
-#: forms/custom_validators.py:33
+#: forms/custom_validators.py:46
 #, python-brace-format
 msgid ""
 "{field_name} must have at least {min_length} characters (it has {len_value})."
@@ -51,24 +51,29 @@ msgstr ""
 "{field_name} muss mindestens {min_length} Zeichen enthalten (er hat "
 "{len_value})."
 
-#: forms/custom_validators.py:45
+#: forms/custom_validators.py:58
 msgid "Repository name"
 msgstr "Name des Repositoriums"
 
-#: forms/custom_validators.py:49
-msgid "alphanumeric, hyphen, underscore, and period"
-msgstr "alphanumerisch, Bindestrich, Unterstrich und Punkt"
+#: forms/custom_validators.py:68
+msgid "alphanumeric, hyphen, underscore, period, plus sign and whitespace"
+msgstr "alphanumerisch, Bindestrich, Unterstrich, Punkt, Pluszeichen und Leerzeichen"
 
-#: forms/custom_validators.py:54 forms/forms.py:119
+#: forms/custom_validators.py:74
+#, python-brace-format
+msgid "{field_name} must start with a letter or digit."
+msgstr "{field_name} muss mit einem Buchstaben oder einer Ziffer beginnen."
+
+#: forms/custom_validators.py:91 forms/forms.py:119
 #: templates/plugins/exports_multivalue_select_option.html:16
 msgid "File path"
 msgstr "Dateipfad"
 
-#: forms/custom_validators.py:58
+#: forms/custom_validators.py:95
 msgid "alphanumeric, slash, hyphen, underscore, and period"
 msgstr "alphanumerisch, Slash, Bindestrich, Unterstrich und Punkt"
 
-#: forms/custom_validators.py:65
+#: forms/custom_validators.py:109
 msgid "File must be in XML format."
 msgstr "Die Datei muss im XML-Format vorliegen."
 
@@ -257,15 +262,15 @@ msgstr "nicht exportiert - es konnte nicht erstellt werden."
 msgid "successfully exported."
 msgstr "erfolgreich exportiert."
 
-#: providers/exports.py:282
+#: providers/exports.py:283
 msgid "Add GitLab integration"
 msgstr "GitLab-Integration hinzufügen"
 
-#: providers/exports.py:283
+#: providers/exports.py:284
 msgid "Send to GitLab"
 msgstr "An GitLab senden"
 
-#: providers/exports.py:287
+#: providers/exports.py:288
 #, python-brace-format
 msgid ""
 "This integration allows the creation of issues in arbitrary repositories on "
@@ -275,12 +280,12 @@ msgstr ""
 "Repositorien in {self.gitlab_url}. Das Hochladen von Anhängen wird von "
 "GitLab nicht unterstützt."
 
-#: providers/exports.py:294
+#: providers/exports.py:295
 msgid "The URL of the GitLab repository to send issues to."
 msgstr ""
 "Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen."
 
-#: providers/exports.py:299
+#: providers/exports.py:300
 msgid "The secret for a GitLab webhook to close a task (optional)."
 msgstr ""
 "Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
@@ -304,6 +309,5 @@ msgid "Successful Export to %(source_title)s"
 msgstr "Erfolgreicher Export nach %(source_title)s"
 
 #: templates/plugins/gitlab_export_success.html:14
-#, python-format
-msgid "Go to %(source_title)s repo"
-msgstr "Zum %(source_title)s-Repositorium"
+msgid "Go to GitLab repo"
+msgstr "Zum GitLab-Repositorium"
