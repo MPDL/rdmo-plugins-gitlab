@@ -149,7 +149,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             'new_repo_name_display': 'none',
             'repo_display': 'block',
             'form': form, 
-            'source_title': self.gitlab_url, 
+            'source_title': self.gitlab_url,
             'submit_label':_('Export to GitLab')
         }             
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
@@ -271,8 +271,11 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         
         processed_exports = self.pop_from_session(request, 'gitlab_processed_exports')
         repo_html_url = response.json().get('web_url').split("-/commit")[0]
-        context = {'repo_html_url': repo_html_url, 'processed_exports': processed_exports}
-        
+        context = {
+            'repo_html_url': repo_html_url, 
+            'processed_exports': processed_exports, 
+            'source_title': self.gitlab_url
+        }
         return render(request, 'plugins/gitlab_export_success.html', context, status=200)
     
 
