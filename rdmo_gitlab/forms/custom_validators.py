@@ -81,14 +81,7 @@ def validate_export_file_path(value):
     not_allowed_pattern = f'[^A-Za-z0-9\/\-\_\.]'
     allowed_char_name_str = _('alphanumeric, slash, hyphen, underscore, and period')
 
-    return validate_text_field(
-        field_name=field_name, 
-        value=value, 
-        min_length=min_length, 
-        max_length=max_length, 
-        not_allowed_pattern=not_allowed_pattern, 
-        allowed_char_name_str=allowed_char_name_str
-    )
+    return validate_text_field(field_name, value, min_length, max_length, not_allowed_pattern, allowed_char_name_str)
 
 def validate_import_file_path(value):
     if not value.endswith('.xml'):
