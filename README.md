@@ -4,10 +4,10 @@ rdmo-plugins-gitlab
 This repo implements three plugins for [RDMO](https://github.com/rdmorganiser/rdmo):
 
 * an [issue provider](https://rdmo.readthedocs.io/en/latest/plugins/index.html#issue-providers), which lets users push their tasks from RDMO to GitLab issues.
-* a [project import plugins](https://rdmo.readthedocs.io/en/latest/plugins/index.html#project-import-plugins), which can be used to import projects from (public or private)repos.
+* a [project import plugin](https://rdmo.readthedocs.io/en/latest/plugins/index.html#project-import-plugins), which can be used to import projects from (public or private) repos.
 * an export plugin, which can be used to export projects to (public or private) repos. For SMP projects, this plugin also provides other export choices that reuse project data (e.g. README, CITATION or LICENSE files).
 
-The plugin uses [OAUTH 2.0](https://oauth.net/2/), so that users use their respective accounts in both systems.
+The plugins use [OAUTH 2.0](https://oauth.net/2/), so that users use their respective accounts in both systems.
 
 
 Setup
@@ -35,7 +35,7 @@ For the issue provider, add the plugin to `PROJECT_ISSUE_PROVIDERS` in `config/s
 
 ```python
 PROJECT_ISSUE_PROVIDERS += [
-    ('gitlab', _('GitLab Provider'), 'rdmo_gitlab.providers.GitLabIssueProvider'),
+    ('gitlab', _('GitLab Provider'), 'rdmo_gitlab.providers.exports.GitLabIssueProvider'),
 ]
 ```
 
@@ -43,7 +43,7 @@ For the import, add the plugin to `PROJECT_IMPORTS` and its key to `PROJECT_IMPO
 
 ```python
 PROJECT_IMPORTS = [
-    ('gitlab', _('Import from GitLab'), 'rdmo_gitlab.providers.GitLabImport'),
+    ('gitlab', _('GitLab'), 'rdmo_gitlab.providers.imports.GitLabImport'),
 ]
 
 PROJECT_IMPORTS_LIST += ['gitlab']
@@ -55,7 +55,7 @@ For the export:
 
 ```python
 PROJECT_EXPORTS += [
-    ('gitlab', _('GitLab'), 'rdmo_gitlab.providers.GitLabExportProvider'),
+    ('gitlab', _('GitLab'), 'rdmo_gitlab.providers.exports.GitLabExportProvider'), 
 ]
 ```
 
@@ -70,14 +70,14 @@ Usage
 
 ### Issue provider
 
-After the setup, users can add a GitLab intergration to their projects. They need to provide the URL to their repository. Afterwards, project tasks can be pushed to the GitLab repository.
+After the setup, users can add a GitLab intergration to their projects. They need to provide the URL to their repository. Afterwards, project tasks can be pushed to the GitLab repository as repo issues.
 
 Additionally, a secret can be added to enable GitLab to communicate to RDMO when the status of a work package changed. For this, a webhook has to be added at `https://<repo_url>/-/hooks`. The webhook has to point to `https://<rdmo_url>/projects/<project_id>/integrations/<integration_id>/webhook/` and the secret token has to be exactly the secret entered in the integration.
 
 ### Project import
 
-Users can import project import files directly from a public or private GitLab repository.
+Users can import xml project files directly from a public or private GitLab repository.
 
 ### Project export
 
-Users can export project import files directly to a public or private GitLab repository. For SMP projects, they can also export custom files (README, CITATION, LICENSE) created with the SMP project's data. They can choose to export to an existing repository or to create a new one.
+Users can export project files directly to a public or private GitLab repository. For SMP projects, they can also export custom files (README, CITATION, LICENSE) created with the SMP project's data. They can choose to export to an existing repository or to create a new one.
