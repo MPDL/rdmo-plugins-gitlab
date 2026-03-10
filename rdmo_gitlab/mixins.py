@@ -108,7 +108,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         
         # store access token in session
         self.store_in_session(request, 'access_token', response_data.get('access_token'))
-        self.store_in_session(request, 'refresh_token', response_data.get('refresh_token', None))
+        self.store_in_session(request, 'refresh_token', response_data.get('refresh_token'))
         
         redirect_url = self.pop_from_session(request, 'redirect_url')
         if redirect_url is not None:
@@ -152,8 +152,9 @@ class GitLabProviderMixin(OauthProviderMixin):
     
     def refresh_access_token(self, request):
         'Update access token with refresh_token if it exists'
-
+        
         refresh_token = self.pop_from_session(request, 'refresh_token')
+        
         if refresh_token is None: return
 
         url = self.token_url + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
@@ -161,7 +162,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         
         try:
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except requests.HTTPError:
             logger.error('GitLab refresh token error: %s (%s)', response.content, response.status_code)
             return 
 
