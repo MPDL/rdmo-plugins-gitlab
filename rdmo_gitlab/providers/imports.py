@@ -43,7 +43,7 @@ class GitLabImport(GitLabProviderMixin, RDMOXMLImport):
             self.request.session['import_source_title'] = form.cleaned_data['path']
 
             url = self.process_form_data(form.cleaned_data)
-            return self.make_request(self.request, 'get', url)
+            return self.get(self.request, url)
 
         other_repo_check = True if 'other_repo_check' in form.data else False
         repo_display = 'none' if other_repo_check else 'block'
