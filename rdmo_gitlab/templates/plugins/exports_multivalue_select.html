@@ -1,3 +1,0 @@
-{% with id=widget.attrs.id %}<div{% if id %} id="{{ id }}"{% endif %}>{% for option in widget.optgroups %}
-    {% include option.template_name with widget=option index=forloop.counter0 %}{% endfor %}
-</div>{% endwith %}

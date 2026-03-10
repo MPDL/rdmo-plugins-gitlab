@@ -1,8 +1,11 @@
 from django import forms
+from django.templatetags.static import static
+from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .custom_fields import ExportsMultipleChoiceField
+from rdmo_maus.forms.custom_fields import MultivalueCheckboxMultipleChoiceField
+
 from .custom_validators import validate_new_repo_name, validate_import_file_path
 
 class GitLabBaseForm(forms.Form):
@@ -20,27 +23,31 @@ class GitLabBaseForm(forms.Form):
 class GitLabExportForm(GitLabBaseForm):
     def __init__(self, *args, **kwargs):
         export_choices = kwargs.pop('export_choices', None)
-        export_choices_to_update = kwargs.pop('export_choices_to_update', None)
+        export_choice_validators = kwargs.pop('export_choice_validators', None)
+        export_choice_attributes = kwargs.pop('export_choice_attributes', None)
+        export_choice_warnings = kwargs.pop('export_choice_warnings', None)
         super().__init__(*args, **kwargs)
-
-        if export_choices_to_update is not None:
-            self.fields['exports'].choices_to_update = export_choices_to_update
-            self.fields['exports'].help_text = _('Warning: Existing content in GitLab will be overwritten. To avoid this, consider updating the file path or the branch.')
 
         if export_choices is not None:
             self.fields['exports'].choices = export_choices
-            self.fields['exports'].choice_names = [c[1][1] for c in export_choices]
-            self.fields['all_exports'].widget = forms.CheckboxInput(
-                attrs={'onclick': f'select_all_exports({len(export_choices)})'}
-            )
-            self.fields['branch'].widget = forms.TextInput(attrs={'oninput': f'hide_check_messages(this, {len(export_choices)})'})
+            self.fields['branch'].widget = forms.TextInput(attrs={'oninput': f'hideAllChoiceWarningMessages(this, {len(export_choices)})'})
+
+        if export_choice_validators is not None:
+            self.fields['exports'].choice_validators = export_choice_validators
+
+        if export_choice_attributes is not None:
+            self.fields['exports'].widget.choice_attributes = export_choice_attributes
+
+        if export_choice_warnings is not None:
+            self.fields['exports'].widget.choice_warnings = export_choice_warnings
+            self.fields['exports'].help_text = _('Warning: Existing content in GitLab will be overwritten. To avoid this, consider updating the file path or the branch.')
 
     new_repo = forms.BooleanField (
         label=_('Create new repository'),
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                'onclick': f'''toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo", "{_('Export to GitLab')}", "{_('Proceed')}")'''
+                'onclick': f'''toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo")'''
         })
     )
 
@@ -48,6 +55,7 @@ class GitLabExportForm(GitLabBaseForm):
         label=_('Name for the new repository'),
         help_text=_('Unique name for the new repository. No other of your repositories may have the same name, otherwise the export will fail.'),
         required=False,
+        widget=forms.TextInput(attrs={'placeholder': _('example-repo-name')}),
         validators=[validate_new_repo_name]
     )
 
@@ -57,16 +65,12 @@ class GitLabExportForm(GitLabBaseForm):
         widget=forms.RadioSelect
     )
     
-    exports = ExportsMultipleChoiceField(
+    exports = MultivalueCheckboxMultipleChoiceField(
         label=_('Export choices'),
         help_text=_('Warning: Existing content in GitLab will be overwritten.'),
+        include_select_all_choice=True
     )
 
-    all_exports = forms.BooleanField(
-        label=_('Select all export choices'),
-        required=False,
-    )
-    
     branch = forms.CharField(
         label=_('Branch'),
         help_text=_('An existing branch in the GitLab repository. For a new repository it must be the default branch "main".'),
@@ -74,6 +78,10 @@ class GitLabExportForm(GitLabBaseForm):
     )
     
     commit_message = forms.CharField(label=_('Commit message'))
+
+    class Media:
+        js = [format_html('<script src="{}" defer ></script>', static('plugins/js/gitlab_form.js'))]
+
 
     def clean(self):
         super().clean()
