@@ -73,12 +73,19 @@ class GitLabProviderMixin(OauthProviderMixin):
             'redirect_uri': request.build_absolute_uri(self.redirect_path),
         }
     
-    def get_request_url(self, repo, path, ref=None):
-        url = '{api_url}/projects/{repo}/repository/files/{path}'.format(
+    def get_request_url(self, repo, path=None, suffix=None, ref=None):
+        url = '{api_url}/projects/{repo}'.format(
                 api_url=self.api_url,
-                repo=quote(repo.replace(self.gitlab_url, '').strip('/'), safe=''),
+                repo=quote(repo.replace(self.gitlab_url, '').strip('/'), safe='')
+            )
+        
+        if path:
+            url += '/repository/files/{path}'.format(
                 path=quote(path.strip('../'), safe='')
             )
+
+        if suffix:
+            url += suffix
         
         if ref:
             url += '?ref={ref}'.format(ref=quote(ref, safe=''))
@@ -114,10 +121,13 @@ class GitLabProviderMixin(OauthProviderMixin):
         if redirect_url is not None:
             return HttpResponseRedirect(redirect_url)
 
-        # get request data from session
+        # get post data from session
         try:
-            method, url, kwargs = self.pop_from_session(request, 'request')
-            return self.make_request(request, method, url, **kwargs)
+            method, *args = self.pop_from_session(request, 'request')
+            if method == 'get':
+                return self.get(request, *args)
+            elif method == 'post':
+                return self.post(request, *args)
         except ValueError:
             pass
         
