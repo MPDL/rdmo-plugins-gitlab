@@ -85,13 +85,17 @@ class GitLabExportForm(GitLabBaseForm):
 
     def clean(self):
         super().clean()
+
         new_repo = self.cleaned_data.get('new_repo')
         new_repo_name = self.cleaned_data.get('new_repo_name')
         repo = self.cleaned_data.get('repo')
 
         if new_repo and new_repo_name == '':
             self.add_error('new_repo_name', ValidationError(_('A name for the new repository is required.'), code='required'))
-        
+
+        if not new_repo and 'new_repo_name' in self.errors: # ignore new_repo_errors because repo will be used instead
+            self._errors.pop('new_repo_name')
+
         if not new_repo and repo == '':
             self.add_error('repo', ValidationError(_('A GitLab repository is required.'), code='required'))
 
