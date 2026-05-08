@@ -1,15 +1,16 @@
 import logging
-import requests
-from urllib.parse import urlencode, quote
+from urllib.parse import quote, urlencode
 
 from django import forms
 from django.conf import settings
-from django.urls import reverse
-from django.shortcuts import render
-from django.utils.crypto import get_random_string
 from django.http import HttpResponseRedirect
-from django.utils.translation import gettext_lazy as _
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
+
+import requests
 
 from rdmo.services.providers import OauthProviderMixin
 
@@ -41,7 +42,7 @@ class GitLabProviderMixin(OauthProviderMixin):
     @property
     def redirect_path(self):
         return reverse('oauth_callback', args=['gitlab'])
-    
+
     class ProviderForm(forms.Form):
 
         provider = forms.ChoiceField(
@@ -74,7 +75,7 @@ class GitLabProviderMixin(OauthProviderMixin):
             'grant_type': 'authorization_code',
             'redirect_uri': request.build_absolute_uri(self.redirect_path)
         }
-    
+
     def get_refresh_token_params(self, request, refresh_token):
         return {
             'client_id': self.get_client_id(request),
@@ -83,26 +84,26 @@ class GitLabProviderMixin(OauthProviderMixin):
             'refresh_token': refresh_token,
             'redirect_uri': request.build_absolute_uri(self.redirect_path),
         }
-    
+
     def get_request_url(self, request, repo, path=None, suffix=None, ref=None):
         url = '{api_url}/projects/{repo}'.format(
                 api_url=self.get_api_url(request),
                 repo=quote(repo.replace(self.get_gitlab_url(request), '').strip('/'), safe='')
             )
-        
+
         if path:
             url += '/repository/files/{path}'.format(
-                path=quote(path.strip('../'), safe='')
+                path=quote(path.removeprefix('../').removeprefix('./').strip('/'), safe='')
             )
 
         if suffix:
             url += suffix
-        
+
         if ref:
             url += '?ref={ref}'.format(ref=quote(ref, safe=''))
 
         return url
-    
+
     def get_file_metadata(self, request, url):
         access_token = self.get_from_session(request, 'access_token')
         if access_token:
@@ -110,11 +111,11 @@ class GitLabProviderMixin(OauthProviderMixin):
             try:
                 response.raise_for_status()
                 return response
-            except:
+            except requests.HTTPError:
                 return None
-        
+
         return None
-    
+
     def select_provider(self, request):
         if getattr(settings, 'GITLAB_PROVIDER', None):
             provider = settings.GITLAB_PROVIDER
@@ -131,26 +132,26 @@ class GitLabProviderMixin(OauthProviderMixin):
                 'submit': _('Select provider')
             }
             return render(request, 'plugins/gitlab_provider_form.html', context, status=200)
-        
+
         return render(request, 'core/error.html', {
             'title': _('GitLab error'),
             'errors': [_('No redirect could be found.')]
         }, status=200)
-    
+
     def set_provider(self, request):
-        provider_key = self.request.POST.get('provider')        
+        provider_key = self.request.POST.get('provider')
         provider = settings.GITLAB_PROVIDERS.get(provider_key)
         self.store_in_session(request, 'gitlab_provider', provider)
 
         redirect_url = self.pop_from_session(request, 'redirect_url')
         if redirect_url is not None:
             return HttpResponseRedirect(redirect_url)
-        
+
         return render(request, 'core/error.html', {
             'title': _('GitLab error'),
             'errors': [_('No redirect could be found.')]
         }, status=200)
-    
+
     def authorize(self, request):
         # get random state and store in session
         state = get_random_string(length=32)
@@ -179,11 +180,11 @@ class GitLabProviderMixin(OauthProviderMixin):
             raise e
 
         response_data = response.json()
-        
+
         # store access token in session
         self.store_in_session(request, 'access_token', response_data.get('access_token'))
         self.store_in_session(request, 'refresh_token', response_data.get('refresh_token'))
-        
+
         redirect_url = self.pop_from_session(request, 'redirect_url')
         if redirect_url is not None:
             return HttpResponseRedirect(redirect_url)
@@ -197,19 +198,18 @@ class GitLabProviderMixin(OauthProviderMixin):
                 return self.post(request, *args)
         except ValueError:
             pass
-        
+
         return render(request, 'core/error.html', {
             'title': _('GitLab callback error'),
             'errors': [_('No redirect could be found.')]
         }, status=200)
-    
+
     # https://docs.gitlab.com/api/oauth2/
     def validate_access_token(self, request, access_token):
-        if access_token is None: return
+        if access_token is None:
+            return None
 
-        url = '{gitlab_url}/oauth/token/info'.format(
-            gitlab_url=self.get_gitlab_url(request)
-        )
+        url = f'{self.get_gitlab_url(request)}/oauth/token/info'
         response = requests.get(
             url,
             headers=self.get_authorization_headers(access_token)
@@ -217,7 +217,7 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         try:
             response.raise_for_status()
-        except:
+        except requests.HTTPError:
             access_token = self.refresh_access_token(request)
             return access_token
 
@@ -226,22 +226,23 @@ class GitLabProviderMixin(OauthProviderMixin):
             access_token = self.refresh_access_token(request)
 
         return access_token
-    
+
     def refresh_access_token(self, request):
         'Update access token with refresh_token if it exists'
-        
+
         refresh_token = self.pop_from_session(request, 'refresh_token')
-        
-        if refresh_token is None: return
+
+        if refresh_token is None:
+            return None
 
         url = self.get_token_url(request) + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
         response = requests.post(url)
-        
+
         try:
             response.raise_for_status()
         except requests.HTTPError:
             logger.error('GitLab refresh token error: %s (%s)', response.content, response.status_code)
-            return 
+            return
 
         response_data = response.json()
 
@@ -251,28 +252,31 @@ class GitLabProviderMixin(OauthProviderMixin):
         self.store_in_session(request, 'refresh_token', response_data.get('refresh_token'))
 
         return access_token
-    
+
     def get_repo_choices(self, request, access_token, minimum_repo_access_level, page, per_page=10):
-        if access_token is None: return [], False
+        if access_token is None:
+            return [], False
 
         stored_repo_choices = self.get_from_session(request, 'gitlab_repo_choices')
         more_repos_available = self.get_from_session(request, 'gitlab_more_repos_available')
-        if stored_repo_choices and more_repos_available == False:
+        more_repos_available = more_repos_available if more_repos_available is not None else True
+
+        if stored_repo_choices and not more_repos_available:
             return stored_repo_choices, more_repos_available
 
-        url = '{api_url}/projects?min_access_level={min_access_level}&active={active}&per_page={per_page}&page={page}&order_by={order_by}'.format(
+        url = '{api_url}/projects?min_access_level={mal}&active={a}&per_page={pp}&page={p}&order_by={ob}'.format(
             api_url=self.get_api_url(request),
-            min_access_level=minimum_repo_access_level,
-            active=True,
-            per_page=per_page,
-            page=page,
-            order_by='updated_at'
+            mal=minimum_repo_access_level,
+            a=True,
+            pp=per_page,
+            p=page,
+            ob='updated_at'
         )
 
         response = requests.get(url, headers=self.get_authorization_headers(access_token=access_token))
         try:
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except requests.HTTPError:
             logger.error('Error requesting GitLab repo list: %s (%s)', response.content, response.status_code)
             return [], False
 
@@ -284,29 +288,35 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         total_repo_count = int(response.headers.get('X-Total')) if response.headers.get('X-Total') else 0
         more_repos_available = total_repo_count > page*per_page
-        
+
         self.store_in_session(request, 'gitlab_more_repos_available', more_repos_available)
         self.store_in_session(request, 'gitlab_repo_choices', repo_choices)
         self.store_in_session(request, 'gitlab_repos_page', page)
 
         return repo_choices, more_repos_available
-    
+
     def get_repo_form_field_data(self, request, minimum_repo_access_level):
         access_token = self.validate_access_token(request, self.get_from_session(request, 'access_token'))
-        
+
         repos_page = self.pop_from_session(request, 'gitlab_repos_page')
         next_repos_page = repos_page + 1 if repos_page else 1
-        repo_choices, more_repos_available = self.get_repo_choices(request, access_token, minimum_repo_access_level, next_repos_page)
-        
+        repo_choices, more_repos_available = self.get_repo_choices(
+            request, access_token, minimum_repo_access_level, next_repos_page
+        )
+
         if access_token is None:
             state = get_random_string(length=32)
             self.store_in_session(request, 'state', state)
 
             url = self.get_authorize_url(request) + '?' + urlencode(self.get_authorize_params(request, state))
             link_help_text = _('To connect to GitLab repositories, you first need to authorize the MPDL app.')
-            
-            repo_help_text = mark_safe(f'{link_help_text} <a href="{url}">{_("Authorize App")}</a>') if url is not None else ''
-        
+
+            repo_help_text = (
+                mark_safe(f'{link_help_text} <a href="{url}">{_("Authorize App")}</a>')
+                if url is not None
+                else ''
+            )
+
         elif len(repo_choices) == 0:
             repo_help_text = _('You do not have any GitLab repositories yet')
 
@@ -320,10 +330,10 @@ class GitLabProviderMixin(OauthProviderMixin):
             )
             help_text = _('These are your most recently updated, accessible GitLab repositories.')
             repo_help_text = mark_safe(f'{help_text} {more_repos_link}')
-        
+
         return repo_choices, repo_help_text
 
-    
+
     def get_form(self, request, form, *args, **kwargs):
         repo_access_level_map = {
             'GitLabExportForm': 30, # developer
@@ -331,10 +341,10 @@ class GitLabProviderMixin(OauthProviderMixin):
         }
         minimum_repo_access_level = repo_access_level_map[form.__name__]
         repo_choices, repo_help_text = self.get_repo_form_field_data(request, minimum_repo_access_level)
-        
+
         return form(
                 *args,
                 **kwargs,
-                repo_choices=repo_choices, 
+                repo_choices=repo_choices,
                 repo_help_text=repo_help_text
             )

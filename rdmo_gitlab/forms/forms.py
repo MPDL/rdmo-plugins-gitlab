@@ -1,12 +1,13 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.templatetags.static import static
 from django.utils.html import format_html
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from rdmo_maus.forms.fields import MultivalueCheckboxMultipleChoiceField
 
-from .validators import validate_new_repo_name, validate_import_file_path
+from .validators import validate_import_file_path, validate_new_repo_name
+
 
 class GitLabBaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -16,7 +17,7 @@ class GitLabBaseForm(forms.Form):
 
         if repo_choices is not None:
             self.fields['repo'].choices = repo_choices
-            
+
         if repo_help_text is not None:
             self.fields['repo'].help_text = repo_help_text
 
@@ -43,14 +44,14 @@ class GitLabExportForm(GitLabBaseForm):
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                'onclick': f'''toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo")'''
+                'onclick': 'toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo")'
         })
     )
 
     new_repo_name = forms.CharField(
         label=_('Name for the new repository'),
         help_text=_(
-            'Unique name for the new repository. No other of your repositories may have the same name, otherwise the export will fail.'
+            'This name must be unique, otherwise the export will fail.'
         ),
         required=False,
         widget=forms.TextInput(attrs={'placeholder': _('example-repo-name')}),
@@ -62,7 +63,7 @@ class GitLabExportForm(GitLabBaseForm):
         required=False,
         widget=forms.RadioSelect
     )
-    
+
     exports = MultivalueCheckboxMultipleChoiceField(
         label=_('Export choices'),
         help_text=_('Warning: Existing content in GitLab will be overwritten.'),
@@ -71,17 +72,19 @@ class GitLabExportForm(GitLabBaseForm):
 
     branch = forms.CharField(
         label=_('Branch'),
-        help_text=_('An existing branch in the GitLab repository. For a new repository it must be the default branch "main".'),
+        help_text=_('An existing branch in the GitLab repository. For a new repository it must be "main".'),
         initial='main'
     )
-    
+
     commit_message = forms.CharField(label=_('Commit message'))
 
     class Media:
-        js = [format_html(
-            '<script src="{}" repoToggleId="id_new_repo" checkedCollectionClass="form-group field-new_repo_name" uncheckedCollectionClass="form-group field-repo" ></script>', 
-            static('plugins/js/gitlab_form.js')
-        )]
+        script_tag = '<script src="{{}}" cbId="{cbId}" checkedClass="{cC}" uncheckedClass="{uC}" ></script>'.format(
+            cbId='id_new_repo',
+            cC='form-group field-new_repo_name',
+            uC='form-group field-repo'
+        )
+        js = [format_html(script_tag, static('plugins/js/gitlab_form.js'))]
 
     def clean(self):
         super().clean()
@@ -90,7 +93,10 @@ class GitLabExportForm(GitLabBaseForm):
         repo = self.cleaned_data.get('repo')
 
         if new_repo and new_repo_name == '':
-            self.add_error('new_repo_name', ValidationError(_('A name for the new repository is required.'), code='required'))
+            self.add_error(
+                'new_repo_name',
+                ValidationError(_('A name for the new repository is required.'), code='required')
+            )
 
         if not new_repo and 'new_repo_name' in self.errors: # ignore new_repo_errors because repo will be used instead
             self._errors.pop('new_repo_name')
@@ -130,40 +136,48 @@ class GitLabImportForm(GitLabBaseForm):
         label=_('Use other repository'),
         required=False,
         widget=forms.CheckboxInput(
-            attrs={'onclick': 'toggleRepoFields("id_other_repo_check", "form-group field-other_repo", "form-group field-repo")'}
+            attrs={
+                'onclick': 'toggleRepoFields("{cbId}", "{cC}", "{uC}")'.format(
+                    cbId='id_other_repo_check',
+                    cC='form-group field-other_repo',
+                    uC='form-group field-repo'
+                )
+            }
         )
     )
-    
+
     repo = forms.ChoiceField(
         label=_('GitLab repository'),
         required=False,
         widget=forms.RadioSelect
     )
-    
+
     other_repo = forms.CharField(
         label=_('GitLab repository'),
         help_text=_(
-            'URL of GitLab repository you want to import from. If this repository is not public, you must have access to it.'
+            'URL of GitLab repository you want to import from. It must be either public, or accesible to you.'
         ),
         required=False
     )
-    
+
     imports = MultivalueCheckboxMultipleChoiceField(
         label=_('Import choices'),
-        help_text=_('Select the choices you want to import from. Once they are in the gray box, move them to prioritize them.'),
+        help_text=_('Select the import choices. Once they are in the gray box, move them to prioritize them.'),
         sortable=True
     )
 
     ref = forms.CharField(
-        label=_('Branch, tag, or commit'), 
+        label=_('Branch, tag, or commit'),
         initial='main'
     )
 
     class Media:
-        js = [format_html(
-            '<script src="{}" repoToggleId="id_other_repo_check" checkedCollectionClass="form-group field-other_repo" uncheckedCollectionClass="form-group field-repo" ></script>', 
-            static('plugins/js/gitlab_form.js')
-        )]
+        script_tag = '<script src="{{}}" cbId="{cbId}" checkedClass="{cC}" uncheckedClass="{uC}" ></script>'.format(
+            cbId='id_other_repo_check',
+            cC='form-group field-other_repo',
+            uC='form-group field-repo'
+        )
+        js = [format_html(script_tag, static('plugins/js/gitlab_form.js'))]
 
     def clean(self):
         super().clean()
@@ -173,6 +187,6 @@ class GitLabImportForm(GitLabBaseForm):
 
         if other_repo_check and other_repo == '':
             self.add_error('other_repo', ValidationError(_('A GitLab repository is required.'), code='required'))
-        
+
         if not other_repo_check and repo == '':
             self.add_error('repo', ValidationError(_('A GitLab repository is required.'), code='required'))
