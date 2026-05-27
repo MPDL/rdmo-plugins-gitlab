@@ -219,7 +219,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             base64_string_of_content = base64_bytes_of_content.decode('utf-8')
             choice_content = base64_string_of_content
         except AttributeError:
-            logger.warning(f'GitLabExportProvider - No content created for {choice_key}')
+            logger.warning('GitLabExportProvider - No content created for %s', choice_key)
             choice_content = None
 
         return choice_content
@@ -291,7 +291,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         successfully_processed_exports = list(filter(lambda x: x['success'], processed_exports))
         if len(successfully_processed_exports) == 0:
             logger.warning('GitLabExportProvider - No export content could be created for the '
-                           f'selected choices: {exports}.')
+                           'selected choices: %s.', exports)
             return None, None
 
         self.store_in_session(self.request, 'gitlab_processed_exports', processed_exports)
