@@ -325,7 +325,6 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             repo = response.json().get('path_with_namespace')
             if repo:
                 url = request_data.pop('url').replace('repo_placeholder', quote(repo, safe=''))
-                self.pop_from_session(self.request, 'gitlab_provider')
                 return self.post(self.request, url, json=request_data)
 
         processed_exports = self.pop_from_session(request, 'gitlab_processed_exports')
