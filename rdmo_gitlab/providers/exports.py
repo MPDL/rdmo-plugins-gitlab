@@ -163,8 +163,8 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
     def check_file_paths(self, exports, repo, branch):
         export_choice_warnings = {}
         choice_keys = []
-        for e in exports:
-            choice_key, file_path = e.split(',')
+        for export in exports:
+            choice_key, file_path = export.split(',')
             choice_keys.append(choice_key)
             url = self.get_request_url(self.request, repo, path=file_path, ref=branch)
 
