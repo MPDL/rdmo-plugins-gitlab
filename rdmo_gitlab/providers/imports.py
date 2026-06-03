@@ -340,10 +340,10 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             pass
 
         return content
-    
+
     def get_citation(self, url, headers):
         return self._get_file(url, headers)
-    
+
     def get_codemeta(self, url, headers):
         return self._get_file(url, headers)
 
