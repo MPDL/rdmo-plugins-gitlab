@@ -215,6 +215,11 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                 if 'citation' in imports
                 else None
             ),
+            'codemeta': (
+                self.get_request_url(self.request, repo, path=imports.get('codemeta'), ref=form_data.get('ref'))
+                if 'codemeta' in imports
+                else None
+            ),
             'license': self.get_request_url(self.request, repo, suffix='?license=yes') # only in default branch
         }
         selected_urls = {k:urls.get(k) for k in ['repo', *imports.keys()]}
@@ -322,7 +327,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         return languages
 
-    def get_citation(self, url, headers):
+    def _get_file(self, url, headers):
         content = None
 
         response = requests.get(url, headers=headers)
@@ -335,6 +340,12 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             pass
 
         return content
+    
+    def get_citation(self, url, headers):
+        return self._get_file(url, headers)
+    
+    def get_codemeta(self, url, headers):
+        return self._get_file(url, headers)
 
 
 class GitLabImport(GitLabProviderMixin, RDMOXMLImport):
