@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
+
 class RDMOGitLabConfig(AppConfig):
     name = 'rdmo_gitlab'
 
