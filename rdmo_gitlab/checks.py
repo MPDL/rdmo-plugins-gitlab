@@ -6,9 +6,7 @@ from django.core.checks import Error, register
 def check_gitlab_provider_settings(app_configs, **kwargs):
     errors = []
 
-    if getattr(settings, 'GITLAB_PROVIDER', None):
-        pass
-    elif getattr(settings, 'GITLAB_PROVIDERS', None):
+    if getattr(settings, 'GITLAB_PROVIDER', None) or getattr(settings, 'GITLAB_PROVIDERS', None):
         pass
     else:
         errors.append(
