@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 class GitLabProviderMixin(OauthProviderMixin):
 
     def get_gitlab_url(self, request):
+        if self.__class__.__name__ == "GitLabIssueProvider":
+            # no provider is stored in session for GitLabIssueProvider,
+            # so use stored request info to get gitlab_url
+            _method, url, *_args = self.get_from_session(request, 'request')
+            # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
+            gitlab_url = '/'.join(url.split('/')[:3])
+            return gitlab_url
+
         provider = self.get_from_session(request, 'gitlab_provider')
         return provider['gitlab_url'].strip('/')
 
@@ -31,12 +39,37 @@ class GitLabProviderMixin(OauthProviderMixin):
     def get_api_url(self, request):
         return f'{self.get_gitlab_url(request)}/api/v4'
 
+    def _get_provider(self, request):
+        provider = None
+        if getattr(settings, 'GITLAB_PROVIDER', None):
+            provider = settings.GITLAB_PROVIDER
+        elif getattr(settings, 'GITLAB_PROVIDERS', None):
+            _method, url, *_args = self.get_from_session(request, 'request')
+            # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
+            gitlab_url = '/'.join(url.split('/')[:3])
+
+            providers = settings.GITLAB_PROVIDERS.values()
+            provider = next(
+                (provider for provider in providers if provider['gitlab_url'].strip('/')==gitlab_url),
+                None
+            )
+
+        return provider
+
     def get_client_id(self, request):
         provider = self.get_from_session(request, 'gitlab_provider')
+
+        if self.__class__.__name__ == "GitLabIssueProvider":
+            provider = self._get_provider(request)
+
         return provider['client_id']
 
     def get_client_secret(self, request):
         provider = self.get_from_session(request, 'gitlab_provider')
+
+        if self.__class__.__name__ == "GitLabIssueProvider":
+            provider = self._get_provider(request)
+
         return provider['client_secret']
 
     @property
@@ -124,7 +157,7 @@ class GitLabProviderMixin(OauthProviderMixin):
             if redirect_url is not None:
                 return HttpResponseRedirect(redirect_url)
 
-        else:
+        elif getattr(settings, 'GITLAB_PROVIDERS', None):
             providers = settings.GITLAB_PROVIDERS.keys()
             provider_choices = [(p, p) for p in providers]
             context = {
