@@ -227,8 +227,6 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         import_choice_warnings = {}
         choice_keys = []
         for choice_key, url in selected_urls.items():
-            print(f'choice_key: {choice_key}')
-            print(f'url: {url}')
             choice_keys.append(choice_key)
             if imports.get(choice_key): # i.e. if form value has a file path
                 response = self.get_file_metadata(self.request, url)
