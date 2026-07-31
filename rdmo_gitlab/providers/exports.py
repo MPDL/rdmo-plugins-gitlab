@@ -153,7 +153,6 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
                                  'would have been overwritten without a warning.')]
                 }, status=200)
 
-        new_repo = True if 'new_repo' in form.data else False
         context = {
             'form': form,
             'source_title': self.get_gitlab_url(self.request)
@@ -235,17 +234,21 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         processed_exports = []
 
         exports = form_data.get('exports')
-        for e in exports:
-            choice_key, file_path = e.split(',')
+        for export in exports:
+            choice_key, file_path = export.split(',')
             initial_file_path = file_path if new_repo else next(
                 (exp.split(',')[1] for exp in checked_export_choices if exp.split(',')[0] == choice_key),
                 file_path
             )
             initial_branch = 'main' if new_repo else checked_branch
 
-            choice_in_repo = True if export_choice_warnings and choice_key in export_choice_warnings else False
+            choice_in_repo = export_choice_warnings and choice_key in export_choice_warnings
             if file_path != initial_file_path or branch != initial_branch:
-                new_export_choice_warnings, __, ___, ____ = self.check_file_paths([e], form_data['repo'], branch)
+                new_export_choice_warnings, _new_choice_keys, _new_exports, _new_branch = self.check_file_paths(
+                    [export],
+                    form_data['repo'],
+                    branch
+                )
                 if choice_key in new_export_choice_warnings and not update_without_warning:
                     processed_exports.append({
                         'key': choice_key,
@@ -259,7 +262,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
                     })
                     continue
 
-                choice_in_repo = True if choice_key in new_export_choice_warnings else False
+                choice_in_repo = choice_key in new_export_choice_warnings
 
             content = self.render_export_content(choice_key)
             if content is None:
@@ -354,7 +357,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     _fields = {
         'repo_url': {
             'key': 'repo_url',
-            'placeholder': 'placeholder',
+            'placeholder': 'Repository URL',
             'help': _('The URL of the GitLab repository to send issues to.')
         },
         'secret': {
@@ -369,8 +372,9 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     def get_post_url(self, request, issue, integration, subject, message, attachments):
         repo_url = integration.get_option_value('repo_url')
         if repo_url:
-            repo = quote(repo_url.replace(self.get_gitlab_url(request), '').strip('/'), safe='')
-            return f'{self.get_gitlab_url(request)}/api/v4/projects/{repo}/issues'
+            gitlab_url = '/'.join(repo_url.split('/')[:3]) # ['https:', '', {instance domain}, {user}, {repo name}]
+            repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
+            return f'{gitlab_url}/api/v4/projects/{repo}/issues'
 
     def get_post_data(self, request, issue, integration, subject, message, attachments):
         return {
