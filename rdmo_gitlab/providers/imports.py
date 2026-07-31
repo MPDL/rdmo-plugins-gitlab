@@ -9,7 +9,6 @@ import requests
 from rdmo_maus.imports.mixins import SMPRepoImportMixin
 
 from rdmo.core.imports import handle_fetched_file
-from rdmo.projects.imports import RDMOXMLImport
 
 from ..forms.forms import GitLabImportForm
 from ..mixins import GitLabProviderMixin
@@ -102,7 +101,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         failed_import_choices = []
         for c in self.import_choices.get('choices', []):
-            if isinstance(import_choice_warnings, dict) and c[2] in import_choice_warnings.keys():
+            if isinstance(import_choice_warnings, dict) and c[2] in import_choice_warnings:
                 choice_label = c[1][0] if isinstance(c[1], tuple) else c[1]
                 failed_import_choices.append(choice_label)
 
@@ -196,8 +195,8 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         repo = form_data.get('other_repo') if other_repo_check else form_data.get('repo')
 
         imports = {}
-        for i in form_data.get('imports', []):
-            i_list = i.split(',')
+        for _import in form_data.get('imports', []):
+            i_list = _import.split(',')
             key = i_list[0]
             value = i_list[1] if len(i_list) > 1 else None
             imports[key] = value
@@ -228,15 +227,15 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         import_choice_warnings = {}
         choice_keys = []
         for choice_key, url in selected_urls.items():
+            print(f'choice_key: {choice_key}')
+            print(f'url: {url}')
             choice_keys.append(choice_key)
             if imports.get(choice_key): # i.e. if form value has a file path
                 response = self.get_file_metadata(self.request, url)
             else:
                 response = requests.get(url, headers=self.get_authorization_headers(access_token))
 
-            try:
-                response.raise_for_status()
-            except requests.HTTPError:
+            if response is None or response.status_code >= 400:
                 warning = (
                     gettext('Either there is no file with this path in the selected repository '
                             'or it cannot be requested')
@@ -292,11 +291,11 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         # user can select multiple import sources, so processing is needed
         self.pop_from_session(self.request, 'gitlab_import_choice_warnings')
 
-        new_choice_warnings, __, new_urls = self.check_urls(form_data)
+        new_choice_warnings, _new_choice_keys, new_urls = self.check_urls(form_data)
 
         selected_urls = {}
         for choice_key, url in new_urls.items():
-            if choice_key not in new_choice_warnings.keys():
+            if choice_key not in new_choice_warnings:
                 selected_urls[choice_key] = url
 
         return selected_urls, new_choice_warnings
@@ -346,83 +345,3 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
     def get_codemeta(self, url, headers):
         return self._get_file(url, headers)
-
-
-class GitLabImport(GitLabProviderMixin, RDMOXMLImport):
-
-    def render(self):
-        redirect_url = self.request.build_absolute_uri()
-        provider = self.get_from_session(self.request, 'gitlab_provider')
-
-        if provider is None:
-            self.store_in_session(self.request, 'redirect_url', redirect_url)
-            return self.select_provider(self.request)
-
-        access_token = self.validate_access_token(self.request, self.get_from_session(self.request, 'access_token'))
-        if access_token is None:
-            self.store_in_session(self.request, 'redirect_url', redirect_url)
-            return self.authorize(self.request)
-
-        context = {
-            'source_title': self.get_gitlab_url(self.request),
-            'form': self.get_form(self.request, GitLabImportForm, source_title=self.get_gitlab_url(self.request))
-        }
-        return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
-
-    def submit(self):
-        if 'cancel' in self.request.POST:
-            self.pop_from_session(self.request, 'gitlab_provider')
-            self.pop_from_session(self.request, 'gitlab_more_repos_available')
-            self.pop_from_session(self.request, 'gitlab_repo_choices')
-            self.pop_from_session(self.request, 'gitlab_repos_page')
-
-            if self.current_project is None:
-                return redirect('projects')
-            else:
-                return redirect('project', self.current_project.id)
-
-        method = self.request.POST.get('method')
-        if method == 'set_provider':
-            return getattr(self, method)(self.request)
-
-        self.store_in_session(self.request, 'gitlab_more_repos_available', False)
-
-        form = self.get_form(
-            self.request, GitLabImportForm, self.request.POST, source_title=self.get_gitlab_url(self.request)
-        )
-        if form.is_valid():
-            self.request.session['import_source_title'] = form.cleaned_data.get('path')
-
-            url = self.process_form_data(self.request, form.cleaned_data)
-            return self.get(self.request, url)
-
-        context = {
-            'source_title': self.get_gitlab_url(self.request),
-            'form': form
-        }
-
-        return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
-
-    def process_form_data(self, request, form_data):
-        other_repo_check  = form_data.get('other_repo_check')
-        if other_repo_check:
-            repo = form_data.get('other_repo')
-        else:
-            repo = form_data.get('repo')
-
-        url = self.get_request_url(request, repo, path=form_data.get('imports'), ref=form_data.get('ref'))
-        return url
-
-    def get_success(self, request, response):
-        file_content = response.json().get('content')
-        request.session['import_file_name'] = handle_fetched_file(base64.b64decode(file_content))
-
-        self.pop_from_session(request, 'gitlab_provider')
-        self.pop_from_session(request, 'gitlab_more_repos_available')
-        self.pop_from_session(request, 'gitlab_repo_choices')
-        self.pop_from_session(request, 'gitlab_repos_page')
-
-        if self.current_project:
-            return redirect('project_update_import', self.current_project.id)
-        else:
-            return redirect('project_create_import')
