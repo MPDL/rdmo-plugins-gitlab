@@ -16,7 +16,7 @@ Setup
 Install the plugin in your RDMO virtual environment using pip (directly from GitHub):
 
 ```bash
-pip install git+https://github.com/MPDL/rdmo-plugins-gitlab@dev
+pip install git+https://github.com/rdmorganiser/rdmo-plugins-gitlab
 ```
 
 An *App* has to be registered with the particular GitLab instance. For GitLab.com, go to https://gitlab.com/-/profile/applications and create an application with the callback URL `https://<rdmo_url>/services/oauth/gitlab/callback/` and the scope `api`.
@@ -57,7 +57,7 @@ PROJECT_ISSUE_PROVIDERS += [
 ]
 ```
 
-For the import, add the plugin to `PROJECT_IMPORTS` and its key to `PROJECT_IMPORTS_LIST` in `config/settings/local.py`:
+For the import provider, add the plugin to `PROJECT_IMPORTS` and its key to `PROJECT_IMPORTS_LIST` in `config/settings/local.py`:
 
 ```python
 PROJECT_IMPORTS = [
@@ -67,7 +67,7 @@ PROJECT_IMPORTS = [
 PROJECT_IMPORTS_LIST += ['gitlab']
 ```
 
-For the export, add the plugin to `PROJECT_EXPORTS` in `config/settings/local.py`:
+For the export provider, add the plugin to `PROJECT_EXPORTS` in `config/settings/local.py`:
 
 ```python
 PROJECT_EXPORTS += [
@@ -91,10 +91,15 @@ Users can add a GitLab intergration to their projects. They need to provide the 
 
 Additionally, a secret can be added to enable GitLab to communicate to RDMO when the status of a work package changed. For this, a webhook has to be added at `https://<repo_url>/-/hooks`. The webhook has to point to `https://<rdmo_url>/projects/<project_id>/integrations/<integration_id>/webhook/` and the secret token has to be exactly the secret entered in the integration.
 
-### Project import
+### Import provider
 
 Users can import xml project files, and for SMP projects also repository metadata (dependency graph, languages, license, CITATION or CodeMeta files) directly from a public or private GitLab repository.
 
-### Project export
+### Export provider
 
 Users can export project files directly to a public or private GitLab repository. For SMP projects, they can also export custom files (README, CITATION, CodeMeta, LICENSE) created with the SMP project's data. They can choose to export to an existing repository or to create a new one.
+
+Funding Acknowledgments
+-----
+
+The import and export provider plugins in this repository were created by [Max Planck Information and Technology](https://maxit.mpg.de) in the context of a project funded by the [Deutsche Forschungsgemeinschaft](https://www.dfg.de) (DFG, German Research Foundation) – Project number: [543616919](https://gepris.dfg.de/project/543616919).
