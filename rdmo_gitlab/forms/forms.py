@@ -32,9 +32,6 @@ class GitLabExportForm(GitLabBaseForm):
 
         if export_choices is not None:
             self.fields['exports'].choices = export_choices.get('choices')
-            self.fields['branch'].widget = forms.TextInput(
-                attrs={'oninput': f"hideAllChoiceWarningMessages(this, {len(export_choices.get('choices'))})"}
-            )
             self.fields['exports'].choice_validators = export_choices.get('choice_validators', {})
             self.fields['exports'].widget.choice_attributes = export_choices.get('choice_attributes', {})
             self.fields['exports'].widget.choice_warnings = export_choices.get('choice_warnings', {})
@@ -44,9 +41,11 @@ class GitLabExportForm(GitLabBaseForm):
         required=False,
         widget=forms.CheckboxInput(
             attrs={
-                'onclick': 'toggleRepoFields("id_new_repo", "form-group field-new_repo_name", "form-group field-repo")'
-        })
-    )
+                'onclick': 'toggleRepoFields("{cbId}", "{cC}", "{uC}")'.format(
+                    cbId='id_new_repo',
+                    cC='form-group field-new_repo_name',
+                    uC='form-group field-repo'
+    )}))
 
     new_repo_name = forms.CharField(
         label=_('Name for the new repository'),
@@ -141,10 +140,7 @@ class GitLabImportForm(GitLabBaseForm):
                     cbId='id_other_repo_check',
                     cC='form-group field-other_repo',
                     uC='form-group field-repo'
-                )
-            }
-        )
-    )
+    )}))
 
     repo = forms.ChoiceField(
         label=_('GitLab repository'),
