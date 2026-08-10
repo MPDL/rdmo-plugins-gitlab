@@ -31,7 +31,7 @@ GITLAB_PROVIDER = {
 }
 ```
 
-If you want to support *multiple* GitLab providers, instead of defining a GITLAB_PROVIDER, define multiple ones GITLAB_PROVIDERS in `config/settings/local.py`:
+If you want to support *multiple* GitLab providers, instead of defining a GITLAB_PROVIDER, define multiple GITLAB_PROVIDERS in `config/settings/local.py`:
 
 ```python
 GITLAB_PROVIDERS = {
@@ -47,6 +47,12 @@ GITLAB_PROVIDERS = {
     },
     ...
 }
+```
+
+Add the gitlab plugin app (`rdmo_gitlab`) to `INSTALLED_APPS` in `config/settings/local.py`:
+
+```python
+INSTALLED_APPS += ['rdmo_gitlab']
 ```
 
 For the issue provider, add the plugin to `PROJECT_ISSUE_PROVIDERS` in `config/settings/local.py`:
@@ -75,10 +81,10 @@ PROJECT_EXPORTS += [
 ]
 ```
 
-The export and import plugins use the plugin [rdmo_maus](https://github.com/MPDL/rdmo-plugins-maus). This plugin provides the SMP specific import and export choices as well as a custom field used in their form templates. Install rdmo_maus in your RDMO virtual environment using pip (directly from GitHub):
+The export and import plugins use the plugin [rdmo-plugins-maus](https://github.com/MPDL/rdmo-plugins-maus). This plugin provides the SMP specific import and export choices as well as a custom field used in their form templates. `rdmo-plugins-maus` is installed as a dependency of `rdmo-plugins-gitlab`, but it must be also included in `INSTALLED_APPS` in `config/settings/local.py`:
 
-```bash
-pip install git+https://github.com/MPDL/rdmo-plugins-maus
+```python
+INSTALLED_APPS += ['rdmo_maus']
 ```
 
 
@@ -97,7 +103,8 @@ Users can import xml project files, and for SMP projects also repository metadat
 
 ### Export provider
 
-Users can export project files directly to a public or private GitLab repository. For SMP projects, they can also export custom files (README, CITATION, CodeMeta, LICENSE) created with the SMP project's data. They can choose to export to an existing repository or to create a new one.
+Users can export project files directly to a public or private GitLab repository. For SMP projects, they can also export metadata files (README, CITATION, CodeMeta, LICENSE) created with the SMP project's data. They can choose to export to an existing repository or to create a new public one.
+
 
 Funding Acknowledgments
 -----
