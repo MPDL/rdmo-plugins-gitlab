@@ -33,3 +33,14 @@ def check_gitlab_provider_settings(app_configs, **kwargs):
                     )
 
     return errors
+
+@register()
+def check_settings_installed_apps_includes_rdmo_maus(app_configs, **kwargs):
+    errors = []
+
+    installed_apps = settings.INSTALLED_APPS
+
+    if 'rdmo_maus' not in installed_apps:
+        errors.append(Error('"rdmo_maus" must be included in settings.INSTALLED_APPS for rdmo_gitlab to properly work.'))
+    
+    return errors
