@@ -1,11 +1,7 @@
 import base64
-import json
 import logging
 from urllib.parse import quote
 
-from django import forms
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -15,43 +11,36 @@ from rdmo_maus.forms.validators import FilePathExtensionValidator, validate_file
 
 from rdmo.core.plugins import get_plugin
 from rdmo.projects.exports import Export
-from rdmo.projects.providers import OauthIssueProvider
 
 from ..forms.forms import GitLabExportForm
 from ..mixins import GitLabProviderMixin
 
 logger = logging.getLogger(__name__)
 
+
 class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
     @property
     def export_choices(self):
+
         catalog = self.project.catalog.uri_path
         catalog = catalog.lower() if isinstance(catalog, str) else 'project_export'
 
-        export_choices = { # check MultivalueCheckboxMultipleChoiceField in rdmo_maus.forms.fields.py for details
+        export_choices = {  # check MultivalueCheckboxMultipleChoiceField in rdmo_maus.forms.fields.py for details
             'choices': [
-                (f'False,data/{catalog}.xml', ('RDMO XML', _('File path')), 'xml'),
-                (f'False,data/{catalog}_comma_separated.csv', (_('CSV (comma separated)'), _('File path')), 'csvcomma'),
+                (f'True,data/{catalog}.xml', ('RDMO XML', _('File path')), 'xml'),
+                (f'True,data/{catalog}_comma_separated.csv', (_('CSV (comma separated)'), _('File path')), 'csvcomma'),
                 (
-                    f'False,data/{catalog}_semicolon_separated.csv',
+                    f'True,data/{catalog}_semicolon_separated.csv',
                     (_('CSV (semicolon separated)'), _('File path')),
-                    'csvsemicolon'
+                    'csvsemicolon',
                 ),
-                (f'False,data/{catalog}.json', ('JSON', _('File path')), 'json')
+                (f'True,data/{catalog}.json', ('JSON', _('File path')), 'json'),
             ],
             'choice_validators': {
-                'xml': {
-                    'text': [validate_file_path, FilePathExtensionValidator('.xml')]
-                },
-                'csvcomma': {
-                    'text': [validate_file_path, FilePathExtensionValidator('.csv')]
-                },
-                'csvsemicolon': {
-                    'text': [validate_file_path, FilePathExtensionValidator('.csv')]
-                },
-                'json': {
-                    'text': [validate_file_path, FilePathExtensionValidator('.json')]
-                }
+                'xml': {'text': [validate_file_path, FilePathExtensionValidator('.xml')]},
+                'csvcomma': {'text': [validate_file_path, FilePathExtensionValidator('.csv')]},
+                'csvsemicolon': {'text': [validate_file_path, FilePathExtensionValidator('.csv')]},
+                'json': {'text': [validate_file_path, FilePathExtensionValidator('.json')]},
             },
             'choice_attributes': {
                 'xml': {
@@ -73,8 +62,8 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
                     'text': {
                         'placeholder': _('example_folder/example_json_file.json'),
                     }
-                }
-            }
+                },
+            },
         }
 
         smp_export_choices = getattr(self, 'smp_export_choices', None)
@@ -100,22 +89,20 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.authorize(self.request)
 
-        context = {
-            'form': self.get_form(
-                self.request,
-                GitLabExportForm,
-                export_choices=self.export_choices
-            ),
-            'source_title': self.get_gitlab_url(self.request)
+        repo_choices, repo_help_text = self.get_repo_form_field_data(
+            self.request, access_token, minimum_repo_access_level=30
+        )  # 30 -> developer
+        form_kwargs = {
+            'repo_choices': repo_choices,
+            'repo_help_text': repo_help_text,
+            'export_choices': self.export_choices,
         }
+        context = {'form': GitLabExportForm(**form_kwargs), 'source_title': self.get_gitlab_url(self.request)}
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
     def submit(self):
         if 'cancel' in self.request.POST:
             self.pop_from_session(self.request, 'gitlab_provider')
-            self.pop_from_session(self.request, 'gitlab_more_repos_available')
-            self.pop_from_session(self.request, 'gitlab_repo_choices')
-            self.pop_from_session(self.request, 'gitlab_repos_page')
 
             if self.project is None:
                 return redirect('projects')
@@ -126,17 +113,23 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         if method == 'set_provider':
             return getattr(self, method)(self.request)
 
-        self.store_in_session(self.request, 'gitlab_more_repos_available', False)
-
-        form = self.get_form(self.request, GitLabExportForm, self.request.POST, export_choices=self.export_choices)
+        access_token = self.get_from_session(self.request, 'access_token')
+        repo_choices, repo_help_text = self.get_repo_form_field_data(
+            self.request, access_token, minimum_repo_access_level=30
+        )  # 30 -> developer
+        form_kwargs = {
+            'repo_choices': repo_choices,
+            'repo_help_text': repo_help_text,
+            'export_choices': self.export_choices,
+        }
+        form = GitLabExportForm(self.request.POST, **form_kwargs)
         if form.is_valid():
-
             # 1. Validate export choices: Check submitted file paths to warn user if repo files will be overwritten
             export_choice_warnings = self.get_from_session(self.request, 'gitlab_export_choice_warnings')
             new_repo = form.cleaned_data.get('new_repo')
 
             if not new_repo and export_choice_warnings is None:
-                context, export_choice_warnings = self.validate_export_choices(form.cleaned_data)
+                context, export_choice_warnings = self.validate_export_choices(form)
 
                 if len(export_choice_warnings) > 0:
                     return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
@@ -147,19 +140,27 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             if url is not None and request_data is not None:
                 return self.post(self.request, url, json=request_data)
             else:
-                return render(self.request, 'core/error.html', {
-                    'title': _('Something went wrong'),
-                    'errors': [_('Either the export choices could not be created or the repository content '
-                                 'would have been overwritten without a warning.')]
-                }, status=200)
+                self.pop_from_session(self.request, 'gitlab_provider')
+                return render(
+                    self.request,
+                    'core/error.html',
+                    {
+                        'title': _('Something went wrong'),
+                        'errors': [
+                            _(
+                                'Either the export choices could not be created or the repository content '
+                                'would have been overwritten without a warning.'
+                            )
+                        ],
+                    },
+                    status=200,
+                )
 
-        context = {
-            'form': form,
-            'source_title': self.get_gitlab_url(self.request)
-        }
+        context = {'form': form, 'source_title': self.get_gitlab_url(self.request)}
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
     def check_file_paths(self, exports, repo, branch):
+        access_token = self.get_from_session(self.request, 'access_token')
         export_choice_warnings = {}
         choice_keys = []
         for export in exports:
@@ -167,7 +168,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             choice_keys.append(choice_key)
             url = self.get_request_url(self.request, repo, path=file_path, ref=branch)
 
-            response = self.get_file_metadata(self.request, url)
+            response = self.get_file_metadata(access_token, url)
             if response is not None and response.status_code == 200:
                 export_choice_warnings[choice_key] = [
                     gettext('A file with the same path exists in the selected repository and will be overwritten')
@@ -175,28 +176,21 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         return export_choice_warnings, choice_keys, exports, branch
 
-    def validate_export_choices(self, form_data):
+    def validate_export_choices(self, form):
         export_choice_warnings, selected_choice_keys, checked_export_choices, checked_branch = self.check_file_paths(
-            form_data.get('exports'),
-            form_data.get('repo'),
-            form_data.get('branch')
+            form.cleaned_data.get('exports'), form.cleaned_data.get('repo'), form.cleaned_data.get('branch')
         )
         self.store_in_session(self.request, 'gitlab_export_choice_warnings', export_choice_warnings)
         self.store_in_session(self.request, 'gitlab_checked_export_choices', checked_export_choices)
         self.store_in_session(self.request, 'gitlab_checked_branch', checked_branch)
 
         selected_choices = [c for c in self.export_choices.get('choices', []) if c[2] in selected_choice_keys]
-        form = self.get_form(
-            self.request,
-            GitLabExportForm,
-            self.request.POST,
-            export_choices={
-                **self.export_choices,
-                'choices': selected_choices,
-                'choice_warnings': export_choice_warnings
-            }
-        )
+
+        form.fields['exports'].choices = selected_choices
+        form.fields['exports'].widget.choice_warnings = export_choice_warnings
+
         context = {'form': form}
+
         return context, export_choice_warnings
 
     def render_export(self, choice_key):
@@ -236,30 +230,35 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         exports = form_data.get('exports')
         for export in exports:
             choice_key, file_path = export.split(',')
-            initial_file_path = file_path if new_repo else next(
-                (exp.split(',')[1] for exp in checked_export_choices if exp.split(',')[0] == choice_key),
+            initial_file_path = (
                 file_path
+                if new_repo
+                else next(
+                    (exp.split(',')[1] for exp in checked_export_choices if exp.split(',')[0] == choice_key), file_path
+                )
             )
             initial_branch = 'main' if new_repo else checked_branch
 
             choice_in_repo = export_choice_warnings and choice_key in export_choice_warnings
             if file_path != initial_file_path or branch != initial_branch:
                 new_export_choice_warnings, _new_choice_keys, _new_exports, _new_branch = self.check_file_paths(
-                    [export],
-                    form_data['repo'],
-                    branch
+                    [export], form_data.get('repo'), branch
                 )
                 if choice_key in new_export_choice_warnings and not update_without_warning:
-                    processed_exports.append({
-                        'key': choice_key,
-                        'label': next(
-                            (c[1][0] for c in self.export_choices.get('choices', []) if c[2] == choice_key),
-                            choice_key
-                        ),
-                        'success': False,
-                        'processing_status': _('not exported - it would have overwritten existing file '
-                                               'in repository without a warning.')
-                    })
+                    processed_exports.append(
+                        {
+                            'key': choice_key,
+                            'label': next(
+                                (c[1][0] for c in self.export_choices.get('choices', []) if c[2] == choice_key),
+                                choice_key,
+                            ),
+                            'success': False,
+                            'processing_status': _(
+                                'not exported - it would have overwritten existing file '
+                                'in repository without a warning.'
+                            ),
+                        }
+                    )
                     continue
 
                 choice_in_repo = choice_key in new_export_choice_warnings
@@ -273,28 +272,20 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
                 processing_status = _('successfully exported.')
 
                 action = 'update' if choice_in_repo else 'create'
-                actions.append({
-                    'action': action,
-                    'file_path': file_path,
-                    'content': content,
-                    'encoding': 'base64'
-                })
+                actions.append({'action': action, 'file_path': file_path, 'content': content, 'encoding': 'base64'})
 
             choice_label = next(
-                (c[1][0] for c in self.export_choices.get('choices', []) if c[2] == choice_key),
-                choice_key
+                (c[1][0] for c in self.export_choices.get('choices', []) if c[2] == choice_key), choice_key
             )
-            processed_exports.append({
-                'key': choice_key,
-                'label': choice_label,
-                'success': success,
-                'processing_status': processing_status
-            })
+            processed_exports.append(
+                {'key': choice_key, 'label': choice_label, 'success': success, 'processing_status': processing_status}
+            )
 
         successfully_processed_exports = list(filter(lambda x: x['success'], processed_exports))
         if len(successfully_processed_exports) == 0:
-            logger.warning('GitLabExportProvider - No export content could be created for the '
-                           'selected choices: %s.', exports)
+            logger.warning(
+                'GitLabExportProvider - No export content could be created for the selected choices: %s.', exports
+            )
             return None, None
 
         self.store_in_session(self.request, 'gitlab_processed_exports', processed_exports)
@@ -302,11 +293,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         repo = 'repo_placeholder' if new_repo else form_data['repo']
         url = self.get_request_url(self.request, repo, suffix='/repository/commits')
 
-        request_data = {
-            'branch': branch,
-            'commit_message': form_data['commit_message'],
-            'actions': actions
-        }
+        request_data = {'branch': branch, 'commit_message': form_data['commit_message'], 'actions': actions}
 
         if new_repo:
             request_data['url'] = url
@@ -314,132 +301,32 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
             url = f'{self.get_api_url(self.request)}/projects'
             new_repo_name = form_data['new_repo_name']
-            request_data = {'name': new_repo_name}
+            request_data = {'name': new_repo_name, 'visibility': 'public'}
 
         return url, request_data
 
     def post_success(self, request, response):
-        request_data = self.pop_from_session(self.request, 'gitlab_export_data')
-        self.pop_from_session(request, 'gitlab_more_repos_available')
-        self.pop_from_session(request, 'gitlab_repo_choices')
-        self.pop_from_session(request, 'gitlab_repos_page')
+        request_data = self.pop_from_session(request, 'gitlab_export_data')
 
         if isinstance(request_data, dict):
             repo = response.json().get('path_with_namespace')
             if repo:
                 url = request_data.pop('url').replace('repo_placeholder', quote(repo, safe=''))
-                return self.post(self.request, url, json=request_data)
+                return self.post(request, url, json=request_data)
 
         processed_exports = self.pop_from_session(request, 'gitlab_processed_exports')
-        repo_html_url = response.json().get('web_url').split("-/commit")[0]
+        repo_html_url = response.json().get('web_url').split('-/commit')[0]
 
         successful_exports = list(filter(lambda x: x['success'], processed_exports))
         if len(successful_exports) == len(processed_exports):
-            self.pop_from_session(self.request, 'gitlab_provider')
+            self.pop_from_session(request, 'gitlab_provider')
             return redirect(repo_html_url)
 
         context = {
             'repo_html_url': repo_html_url,
             'processed_exports': processed_exports,
-            'source_title': self.get_gitlab_url(request)
+            'source_title': self.get_gitlab_url(request),
         }
 
         self.pop_from_session(request, 'gitlab_provider')
         return render(request, 'plugins/gitlab_export_success.html', context, status=200)
-
-
-class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
-    add_label = _('Add GitLab integration')
-    send_label = _('Send to GitLab')
-    description = _('This integration allows the creation of issues in arbitrary GitLab repositories. '
-                    'The upload of attachments is not supported by GitLab.')
-
-    _fields = {
-        'repo_url': {
-            'key': 'repo_url',
-            'placeholder': 'Repository URL',
-            'help': _('The URL of the GitLab repository to send issues to.')
-        },
-        'secret': {
-            'key': 'secret',
-            'placeholder': 'Secret (random) string',
-            'help': _('The secret for a GitLab webhook to close a task (optional).'),
-            'required': False,
-            'secret': True
-        }
-    }
-
-    def get_post_url(self, request, issue, integration, subject, message, attachments):
-        repo_url = integration.get_option_value('repo_url')
-        if repo_url:
-            gitlab_url = '/'.join(repo_url.split('/')[:3]) # ['https:', '', {instance domain}, {user}, {repo name}]
-            repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
-            return f'{gitlab_url}/api/v4/projects/{repo}/issues'
-
-    def get_post_data(self, request, issue, integration, subject, message, attachments):
-        return {
-            'title': subject,
-            'description': message
-        }
-
-    def get_issue_url(self, response):
-        return response.json().get('web_url')
-
-    def webhook(self, request, integration):
-        secret = integration.get_option_value('secret')
-        header_token = request.headers.get('X-Gitlab-Token')
-
-        if (secret is not None) and (header_token is not None) and (header_token == secret):
-            try:
-                payload = json.loads(request.body.decode())
-                state = payload.get('object_attributes', {}).get('state')
-                issue_url = payload.get('object_attributes', {}).get('url')
-
-                if state and issue_url:
-                    try:
-                        issue_resource = integration.resources.get(url=issue_url)
-                        if state == 'closed':
-                            issue_resource.issue.status = issue_resource.issue.ISSUE_STATUS_CLOSED
-                        else:
-                            issue_resource.issue.status = issue_resource.issue.ISSUE_STATUS_IN_PROGRESS
-
-                        issue_resource.issue.save()
-                    except ObjectDoesNotExist:
-                        pass
-
-                return HttpResponse(status=200)
-
-            except json.decoder.JSONDecodeError as e:
-                return HttpResponse(e, status=400)
-
-        raise Http404
-
-    @property
-    def fields(self):
-        return self._fields.values()
-
-    @fields.setter
-    def fields(self, new_fields):
-        if isinstance(new_fields, dict):
-            for k, v in new_fields.items():
-                self._fields[k] = v
-
-    def integration_setup(self, request):
-        redirect_url = request.build_absolute_uri()
-
-        provider = self.get_from_session(request, 'gitlab_provider')
-        if provider is None:
-            self.store_in_session(request, 'redirect_url', redirect_url)
-            return self.select_provider(request)
-
-        minimum_repo_access_level = 15 # planner
-        repo_choices, repo_help_text = self.get_repo_form_field_data(request, minimum_repo_access_level)
-
-        gitlab_app_repo_url = {**self._fields['repo_url']}
-        if repo_choices is not None:
-            gitlab_app_repo_url['widget'] = forms.RadioSelect(choices=repo_choices)
-
-        if repo_help_text is not None:
-            gitlab_app_repo_url['help'] = repo_help_text
-
-        self.fields = {'repo_url': gitlab_app_repo_url}
