@@ -19,27 +19,26 @@ def validate_new_repo_name(value):
         errors.extend([e for e in ee.error_list if e not in errors])
 
     if value.startswith(('-', '_', '.', '+')):
-        errors.append(ValidationError(
-            _('{field_name} must start with a letter or a digit.').format(
-                field_name=field_name
-            ),
-            code='invalid'
-        ))
+        errors.append(
+            ValidationError(
+                _('{field_name} must start with a letter or a digit.').format(field_name=field_name), code='invalid'
+            )
+        )
 
     if value.endswith(('-', '_', '.', '.git', '.atom')):
-        errors.append(ValidationError(
-            _('{field_name} must not end with hyphen, underscore, period, ".git" or ".atom".').format(
-                field_name=field_name
-            ),
-            code='invalid'
-        ))
+        errors.append(
+            ValidationError(
+                _('{field_name} must not end with hyphen, underscore, period, ".git" or ".atom".').format(
+                    field_name=field_name
+                ),
+                code='invalid',
+            )
+        )
 
     if len(errors) > 0:
         raise ValidationError(errors)
 
+
 def validate_import_file_path(value):
     if not value.endswith('.xml'):
-        raise ValidationError(
-            _('File must be in XML format.'),
-            code='invalid'
-        )
+        raise ValidationError(_('File must be in XML format.'), code='invalid')
