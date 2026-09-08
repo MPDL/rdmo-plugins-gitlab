@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 15:37+0000\n"
+"POT-Creation-Date: 2026-09-08 14:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,40 +18,46 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: rdmo_gitlab/forms/forms.py:40
+#: forms/forms.py:32
+msgid ""
+"Type the URL of a GitLab repository you want to export to. You need write "
+"access to this repository, otherwise the export will fail."
+msgstr ""
+"Geben Sie die URL eines GitLab-Repositoriums ein, in das Sie exportieren möchten. Sie benötigen Schreibzugriff auf dieses Repositorium, andernfalls schlägt der Export fehl."
+
+#: forms/forms.py:49
 msgid "Create a new (public) repository"
 msgstr "Neues (öffentliches) Repositorium anlegen"
 
-#: rdmo_gitlab/forms/forms.py:51
+#: forms/forms.py:63
 msgid "Name for the new repository"
 msgstr "Name des neuen Repositoriums"
 
-#: rdmo_gitlab/forms/forms.py:53
+#: forms/forms.py:64
 msgid "This name must be unique, otherwise the export will fail."
 msgstr "Dieser Name muss eindeutig sein, andernfalls schlägt der Export fehl."
 
-#: rdmo_gitlab/forms/forms.py:56
+#: forms/forms.py:66
 msgid "example-repo-name"
 msgstr "beispiel-repo-name"
 
-#: rdmo_gitlab/forms/forms.py:61 rdmo_gitlab/forms/forms.py:146
-#: rdmo_gitlab/forms/forms.py:152
+#: forms/forms.py:71 forms/forms.py:146
 msgid "GitLab repository"
 msgstr "GitLab-Repositorium"
 
-#: rdmo_gitlab/forms/forms.py:67
+#: forms/forms.py:76
 msgid "Export choices"
 msgstr "Optionen zum Exportieren"
 
-#: rdmo_gitlab/forms/forms.py:68
+#: forms/forms.py:77
 msgid "Warning: Existing content in GitLab will be overwritten."
 msgstr "Warnung: Bestehende Inhalte in GitLab werden überschrieben."
 
-#: rdmo_gitlab/forms/forms.py:73
+#: forms/forms.py:82
 msgid "Branch"
 msgstr "Branch"
 
-#: rdmo_gitlab/forms/forms.py:74
+#: forms/forms.py:83
 msgid ""
 "An existing branch in the GitLab repository. For a new repository it must be "
 "\"main\"."
@@ -59,31 +65,32 @@ msgstr ""
 "Ein bestehender Branch im GitLab-Repositorium. Bei einem neuen Repositorium "
 "muss er „main“ sein."
 
-#: rdmo_gitlab/forms/forms.py:78
+#: forms/forms.py:87
 msgid "Commit message"
 msgstr "Commitnachricht"
 
-#: rdmo_gitlab/forms/forms.py:97
+#: forms/forms.py:108
 msgid "A name for the new repository is required."
 msgstr "Ein Name für das neue Repositorium ist erforderlich."
 
-#: rdmo_gitlab/forms/forms.py:104 rdmo_gitlab/forms/forms.py:185
-#: rdmo_gitlab/forms/forms.py:188
+#: forms/forms.py:115
 msgid "A GitLab repository is required."
 msgstr "Ein GitLab-Repositorium ist erforderlich."
 
-#: rdmo_gitlab/forms/forms.py:118
-#, python-brace-format
-msgid "{source_title}/example-owner/example-repo"
-msgstr "{source_title}/beispiel-besitzerin/beispiel-repo"
+#: forms/forms.py:125
+msgid ""
+"Type the URL of a GitLab repository you want to import from. It must be "
+"either public, or accessible to you."
+msgstr ""
+"Geben Sie die URL des GitLab-Repositoriums ein, aus dem Sie importieren möchten. Es muss "
+"entweder öffentlich oder für Sie zugänglich sein."
 
-#: rdmo_gitlab/forms/forms.py:128 rdmo_gitlab/providers/exports.py:33
-#: rdmo_gitlab/providers/exports.py:34 rdmo_gitlab/providers/exports.py:37
-#: rdmo_gitlab/providers/exports.py:40
+#: forms/forms.py:139 providers/exports.py:30 providers/exports.py:31
+#: providers/exports.py:34 providers/exports.py:37
 msgid "File path"
 msgstr "Dateipfad"
 
-#: rdmo_gitlab/forms/forms.py:129
+#: forms/forms.py:140
 msgid ""
 "The import file's relative path in the repository. The file must be in XML "
 "format."
@@ -91,53 +98,43 @@ msgstr ""
 "Der relative Pfad der Importdatei im Repositorium. Die Datei muss im XML-"
 "Format vorliegen."
 
-#: rdmo_gitlab/forms/forms.py:130 rdmo_gitlab/providers/exports.py:59
+#: forms/forms.py:141 providers/exports.py:48
 msgid "example_folder/example_xml_file.xml"
 msgstr "beispiel_ordner/beispiel_xml_datei.xml"
 
-#: rdmo_gitlab/forms/forms.py:135
-msgid "Use other repository"
-msgstr "Ein anderes Repositorium benutzen"
-
-#: rdmo_gitlab/forms/forms.py:154
-msgid ""
-"URL of GitLab repository you want to import from. It must be either public, "
-"or accesible to you."
-msgstr ""
-"URL des GitLab-Repositoriums, aus dem Sie importieren möchten. Es muss "
-"entweder öffentlich oder für Sie zugänglich sein."
-
-#: rdmo_gitlab/forms/forms.py:160
+#: forms/forms.py:151
 msgid "Import choices"
 msgstr "Optionen zum Importieren"
 
-#: rdmo_gitlab/forms/forms.py:161
+#: forms/forms.py:153
 msgid ""
-"Select the import choices. Once they are in the gray box, move them to "
-"prioritize them."
+"Select the import choices. Use the drag and drop to reorder them by "
+"priority. In the event of a conflict, choices with higher priority (at the "
+"top) will override those with lower priority (at the bottom)."
 msgstr ""
-"Wählen Sie die Optionen zum Importieren aus. Sobald sie sich im grauen "
-"Bereich befinden, verschieben Sie sie, um sie zu priorisieren."
+"Wählen Sie die Optionen zum Importieren aus. Benutzen Sie den drag and drop, "
+"um sie nach Priorität zu ordnen. Im Konfliktfall überschreiben höher "
+"priorisierte Optionen (oben) die niedrigeren (unten)."
 
-#: rdmo_gitlab/forms/forms.py:166
+#: forms/forms.py:161
 msgid "Branch, tag, or commit"
 msgstr "Branch, Tag, oder Commit"
 
-#: rdmo_gitlab/forms/validators.py:8
+#: forms/validators.py:8
 msgid "Repository name"
 msgstr "Name des Repositoriums"
 
-#: rdmo_gitlab/forms/validators.py:12
+#: forms/validators.py:12
 msgid "alphanumeric, hyphen, underscore, period, plus sign and whitespace"
 msgstr ""
 "alphanumerisch, Bindestrich, Unterstrich, Punkt, Pluszeichen und Leerzeichen"
 
-#: rdmo_gitlab/forms/validators.py:23
+#: forms/validators.py:24
 #, python-brace-format
 msgid "{field_name} must start with a letter or a digit."
 msgstr "{field_name} muss mit einem Buchstaben oder einer Ziffer beginnen."
 
-#: rdmo_gitlab/forms/validators.py:31
+#: forms/validators.py:31
 #, python-brace-format
 msgid ""
 "{field_name} must not end with hyphen, underscore, period, \".git\" or "
@@ -146,88 +143,76 @@ msgstr ""
 "{field_name} darf nicht mit Bidestrich, Unterstrich, Punkt, \".git\" oder "
 "\".atom\" enden."
 
-#: rdmo_gitlab/forms/validators.py:43
+#: forms/validators.py:44
 msgid "File must be in XML format."
 msgstr "Die Datei muss im XML-Format vorliegen."
 
-#: rdmo_gitlab/mixins.py:82
+#: mixins.py:79
 msgid "GitLab instance"
 msgstr "GitLab-Instanz"
 
-#: rdmo_gitlab/mixins.py:83
+#: mixins.py:79
 msgid "Select one of the supported instances"
 msgstr "Wählen Sie eine der unterstützten Instanzen aus"
 
-#: rdmo_gitlab/mixins.py:165
+#: mixins.py:159
 msgid "Select provider"
 msgstr "Anbieter auswählen"
 
-#: rdmo_gitlab/mixins.py:170 rdmo_gitlab/mixins.py:184
+#: mixins.py:165 mixins.py:181
 msgid "GitLab error"
 msgstr "GitLab-Fehler"
 
-#: rdmo_gitlab/mixins.py:171 rdmo_gitlab/mixins.py:185
-#: rdmo_gitlab/mixins.py:237
+#: mixins.py:165 mixins.py:181
 msgid "No redirect could be found."
 msgstr "Kein redirect gefunden."
 
-#: rdmo_gitlab/mixins.py:199 rdmo_gitlab/mixins.py:236
-msgid "GitLab callback error"
-msgstr "GitLab-Callback-Fehler"
+#: mixins.py:198
+msgid "OAuth authorization not successful"
+msgstr "OAuth-Autorisierung war nicht erfolgreich"
 
-#: rdmo_gitlab/mixins.py:200
+#: mixins.py:198
 msgid "State parameter did not match."
 msgstr "Der Parameter 'state' stimmt nicht überein."
 
-#: rdmo_gitlab/mixins.py:345
-msgid ""
-"To connect to GitLab repositories, you first need to authorize the MPDL app."
-msgstr ""
-"Die Verbindung zu GitLab-Repositorien erfordert die Autorisierung der MPDL-"
-"App."
+#: mixins.py:240
+msgid "OAuth authorization successful"
+msgstr "OAuth-Autorisierung war erfolgreich"
 
-#: rdmo_gitlab/mixins.py:348
-msgid "Authorize App"
-msgstr "App autorisieren"
+#: mixins.py:240
+msgid "But no redirect could be found."
+msgstr "Aber kein redirect gefunden."
 
-#: rdmo_gitlab/mixins.py:354
-msgid "You do not have any GitLab repositories yet"
-msgstr "Sie haben noch keine GitLab-Repositorien"
+#: mixins.py:314
+msgid "You do not have any GitLab repositories yet."
+msgstr "Sie haben noch keine GitLab-Repositorien."
 
-#: rdmo_gitlab/mixins.py:357
-msgid "To add more repositories to this list, click"
-msgstr "Um die Repositorien-Liste zu erweitern, klicken Sie"
-
-#: rdmo_gitlab/mixins.py:358
-msgid "here"
-msgstr "hier"
-
-#: rdmo_gitlab/mixins.py:364
+#: mixins.py:317
 msgid "These are your most recently updated, accessible GitLab repositories."
 msgstr ""
 "Das sind Ihre zuletzt aktualisierten, zugänglichen GitLab-Repositorien."
 
-#: rdmo_gitlab/providers/exports.py:34
+#: providers/exports.py:31
 msgid "CSV (comma separated)"
 msgstr "CSV (Komma getrennt)"
 
-#: rdmo_gitlab/providers/exports.py:37
+#: providers/exports.py:34
 msgid "CSV (semicolon separated)"
 msgstr "CSV (Semikolon getrennt)"
 
-#: rdmo_gitlab/providers/exports.py:64 rdmo_gitlab/providers/exports.py:69
+#: providers/exports.py:53 providers/exports.py:58
 msgid "example_folder/example_csv_file.csv"
 msgstr "beispiel_ordner/beispiel_csv_datei.csv"
 
-#: rdmo_gitlab/providers/exports.py:74
+#: providers/exports.py:63
 msgid "example_folder/example_json_file.json"
 msgstr "beispiel_ordner/beispiel_json_datei.json"
 
-#: rdmo_gitlab/providers/exports.py:151
+#: providers/exports.py:148
 msgid "Something went wrong"
 msgstr "Etwas ist schief gelaufen"
 
-#: rdmo_gitlab/providers/exports.py:152
+#: providers/exports.py:151
 msgid ""
 "Either the export choices could not be created or the repository content "
 "would have been overwritten without a warning."
@@ -235,7 +220,7 @@ msgstr ""
 "Entweder konnten die Export-Optionen nicht erstellt werden oder der Inhalt "
 "des Repositoriums wäre ohne Warnung überschrieben worden."
 
-#: rdmo_gitlab/providers/exports.py:173
+#: providers/exports.py:174
 msgid ""
 "A file with the same path exists in the selected repository and will be "
 "overwritten"
@@ -243,7 +228,7 @@ msgstr ""
 "Eine Datei mit demselben Pfad existiert im ausgewählten Repositorium und "
 "wird überschrieben"
 
-#: rdmo_gitlab/providers/exports.py:260
+#: providers/exports.py:257
 msgid ""
 "not exported - it would have overwritten existing file in repository without "
 "a warning."
@@ -251,59 +236,33 @@ msgstr ""
 "nicht exportiert - es hätte die bestehende Datei im Repositorium ohne "
 "Warnung überschrieben."
 
-#: rdmo_gitlab/providers/exports.py:270
+#: providers/exports.py:269
 msgid "not exported - it could not be created."
 msgstr "nicht exportiert - es konnte nicht erstellt werden."
 
-#: rdmo_gitlab/providers/exports.py:273
+#: providers/exports.py:272
 msgid "successfully exported."
 msgstr "erfolgreich exportiert."
 
-#: rdmo_gitlab/providers/exports.py:352
-msgid "Add GitLab integration"
-msgstr "GitLab-Integration hinzufügen"
-
-#: rdmo_gitlab/providers/exports.py:353
-msgid "Send to GitLab"
-msgstr "An GitLab senden"
-
-#: rdmo_gitlab/providers/exports.py:354
-msgid ""
-"This integration allows the creation of issues in arbitrary GitLab "
-"repositories. The upload of attachments is not supported by GitLab."
-msgstr ""
-"Diese Integration ermöglicht die Erstellung von Issues in beliebigen GitLab-"
-"Repositorien. Das Hochladen von Anhängen wird von GitLab nicht unterstützt."
-
-#: rdmo_gitlab/providers/exports.py:361
-msgid "The URL of the GitLab repository to send issues to."
-msgstr ""
-"Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen."
-
-#: rdmo_gitlab/providers/exports.py:366
-msgid "The secret for a GitLab webhook to close a task (optional)."
-msgstr ""
-"Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
-
-#: rdmo_gitlab/providers/imports.py:112
+#: providers/imports.py:101
 msgid "GitLab Import"
 msgstr "GitLab-Import"
 
-#: rdmo_gitlab/providers/imports.py:131 rdmo_gitlab/providers/imports.py:175
+#: providers/imports.py:120 providers/imports.py:171
 msgid "Import error"
 msgstr "Fehler beim Import"
 
-#: rdmo_gitlab/providers/imports.py:132
+#: providers/imports.py:120
 msgid "Something went wrong."
 msgstr "Etwas ist schief gelaufen."
 
-#: rdmo_gitlab/providers/imports.py:176
+#: providers/imports.py:172
 msgid "Either none of the import choices exist or they could not be requested."
 msgstr ""
 "Entweder existieren die Importoptionen nicht oder sie konnten nicht "
 "angefragt werden."
 
-#: rdmo_gitlab/providers/imports.py:238
+#: providers/imports.py:233
 msgid ""
 "Either there is no file with this path in the selected repository or it "
 "cannot be requested"
@@ -311,42 +270,76 @@ msgstr ""
 "Entweder existiert keine Datei mit diesem Pfad im ausgewälten Repositorium "
 "oder sie kann nicht angefragt werden"
 
-#: rdmo_gitlab/providers/imports.py:241
+#: providers/imports.py:236
 msgid "Repository endpoint cannot be requested"
 msgstr "Der Repositorium-Endpunkt kann nicht angefragt werden"
 
-#: rdmo_gitlab/templates/plugins/gitlab_export_form.html:10
+#: providers/imports.py:242
+msgid "No languages found"
+msgstr "Keine Sprachen gefunden"
+
+#: providers/imports.py:247
+msgid "No license found"
+msgstr "Keine Lizenz gefunden"
+
+#: providers/issues.py:14
+msgid "Add GitLab integration"
+msgstr "GitLab-Integration hinzufügen"
+
+#: providers/issues.py:15
+msgid "Send to GitLab"
+msgstr "An GitLab senden"
+
+#: providers/issues.py:16
+msgid ""
+"This integration allows the creation of issues in arbitrary GitLab "
+"repositories. The upload of attachments is not supported by GitLab."
+msgstr ""
+"Diese Integration ermöglicht die Erstellung von Issues in beliebigen GitLab-"
+"Repositorien. Das Hochladen von Anhängen wird von GitLab nicht unterstützt."
+
+#: providers/issues.py:70
+msgid "The URL of the GitLab repository to send issues to."
+msgstr ""
+"Die URL des GitLab-Repositoriums, an das Issues gesendet werden sollen."
+
+#: providers/issues.py:75
+msgid "The secret for a GitLab webhook to close a task (optional)."
+msgstr ""
+"Das 'secret' für einen GitLab-Webhook zum Schließen einer Aufgabe (optional)."
+
+#: templates/plugins/gitlab_export_form.html:10
 #, python-format
 msgid "Export to %(source_title)s "
 msgstr "Nach %(source_title)s exportieren"
 
-#: rdmo_gitlab/templates/plugins/gitlab_export_form.html:12
+#: templates/plugins/gitlab_export_form.html:12
 msgid "Export to GitLab"
 msgstr "Nach GitLab exportieren"
 
-#: rdmo_gitlab/templates/plugins/gitlab_export_success.html:6
+#: templates/plugins/gitlab_export_success.html:6
 #, python-format
 msgid "Successful Export to %(source_title)s"
 msgstr "Erfolgreicher Export nach %(source_title)s"
 
-#: rdmo_gitlab/templates/plugins/gitlab_export_success.html:14
+#: templates/plugins/gitlab_export_success.html:14
 msgid "Go to GitLab repository"
 msgstr "Zum GitLab-Repositorium"
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:12
+#: templates/plugins/gitlab_import_success.html:12
 #, python-format
 msgid "Successful Import from %(source_title)s "
 msgstr "Erfolgreicher Import aus %(source_title)s"
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:15
+#: templates/plugins/gitlab_import_success.html:15
 msgid "This import choice could not be requested"
 msgstr "Diese Importoption konnte nicht angefragt werden"
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:17
+#: templates/plugins/gitlab_import_success.html:17
 msgid "These import choices could not be requested"
 msgstr "Diese Importoptionen konnten nicht angefragt werden"
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:25
+#: templates/plugins/gitlab_import_success.html:25
 msgid ""
 "You could either import the rest of the values found in the repository or "
 "cancel the process."
@@ -354,15 +347,15 @@ msgstr ""
 "Sie können den Rest der im Repositorium gefundenen Werte importieren oder "
 "den Prozess abbrechen."
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:28
+#: templates/plugins/gitlab_import_success.html:28
 msgid "Import anyway"
 msgstr "Trotzdem importieren"
 
-#: rdmo_gitlab/templates/plugins/gitlab_import_success.html:29
-#: rdmo_gitlab/templates/plugins/gitlab_provider_form.html:20
+#: templates/plugins/gitlab_import_success.html:29
+#: templates/plugins/gitlab_provider_form.html:20
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: rdmo_gitlab/templates/plugins/gitlab_provider_form.html:6
+#: templates/plugins/gitlab_provider_form.html:6
 msgid "GitLab Provider"
 msgstr "GitLab-Anbieter"
