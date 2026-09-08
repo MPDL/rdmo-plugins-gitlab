@@ -13,21 +13,20 @@ from ..mixins import GitLabProviderMixin
 class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     add_label = _('Add GitLab integration')
     send_label = _('Send to GitLab')
-    description = _('This integration allows the creation of issues in arbitrary GitLab repositories. '
-                    'The upload of attachments is not supported by GitLab.')
+    description = _(
+        'This integration allows the creation of issues in arbitrary GitLab repositories. '
+        'The upload of attachments is not supported by GitLab.'
+    )
 
     def get_post_url(self, request, issue, integration, subject, message, attachments):
         repo_url = integration.get_option_value('repo_url')
         if repo_url:
-            gitlab_url = '/'.join(repo_url.split('/')[:3]) # ['https:', '', {instance domain}, {user}, {repo name}]
+            gitlab_url = '/'.join(repo_url.split('/')[:3])  # ['https:', '', {instance domain}, {user}, {repo name}]
             repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
             return f'{gitlab_url}/api/v4/projects/{repo}/issues'
 
     def get_post_data(self, request, issue, integration, subject, message, attachments):
-        return {
-            'title': subject,
-            'description': message
-        }
+        return {'title': subject, 'description': message}
 
     def get_issue_url(self, response):
         return response.json().get('web_url')
@@ -64,16 +63,12 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     @property
     def fields(self):
         return [
-            {
-                'key': 'repo_url',
-                'placeholder': ' ',
-                'help': _('The URL of the GitLab repository to send issues to.')
-            },
+            {'key': 'repo_url', 'placeholder': ' ', 'help': _('The URL of the GitLab repository to send issues to.')},
             {
                 'key': 'secret',
                 'placeholder': 'Secret (random) string',
                 'help': _('The secret for a GitLab webhook to close a task (optional).'),
                 'required': False,
-                'secret': True
-            }
+                'secret': True,
+            },
         ]
