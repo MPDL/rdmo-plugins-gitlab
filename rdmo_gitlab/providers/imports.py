@@ -15,13 +15,14 @@ from ..mixins import GitLabProviderMixin
 
 logger = logging.getLogger(__name__)
 
+
 class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
     @property
     def import_choices(self):
         smp_import_choices = getattr(self, 'smp_import_choices', None)
         if smp_import_choices:
             choices = smp_import_choices.get('choices', [])
-            choices = [c for c in choices if c[2] != 'sbom'] # sbom only enabled in paying plan
+            choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
             smp_import_choices['choices'] = choices
 
             return smp_import_choices
@@ -42,26 +43,19 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.authorize(self.request)
 
-        form_kwargs = {'source_title': self.get_gitlab_url(self.request)}
+        repo_choices, repo_help_text = self.get_repo_form_field_data(
+            self.request, access_token, minimum_repo_access_level=15
+        )  # 15 -> planner
+        form_kwargs = {'repo_choices': repo_choices, 'repo_help_text': repo_help_text}
         if len(self.import_choices) > 0:
             form_kwargs['import_choices'] = self.import_choices
 
-        context = {
-            'source_title': self.get_gitlab_url(self.request),
-            'form': self.get_form(
-                self.request,
-                GitLabImportForm,
-                **form_kwargs
-            )
-        }
+        context = {'source_title': self.get_gitlab_url(self.request), 'form': GitLabImportForm(**form_kwargs)}
         return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
 
     def submit(self):
         if 'cancel' in self.request.POST:
             self.pop_from_session(self.request, 'gitlab_provider')
-            self.pop_from_session(self.request, 'gitlab_more_repos_available')
-            self.pop_from_session(self.request, 'gitlab_repo_choices')
-            self.pop_from_session(self.request, 'gitlab_repos_page')
 
             if self.current_project is None:
                 return redirect('projects')
@@ -74,14 +68,9 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         elif method == 'set_provider':
             return getattr(self, method)(self.request)
 
-        self.store_in_session(self.request, 'gitlab_more_repos_available', False)
-
-        return self.process_form_submission(self.request)
+        return self.process_form_submission()
 
     def get_success(self, request, response):
-        self.pop_from_session(request, 'gitlab_more_repos_available')
-        self.pop_from_session(request, 'gitlab_repo_choices')
-        self.pop_from_session(request, 'gitlab_repos_page')
 
         # XML file import
         # Only an xml file was imported and no processing is needed
@@ -119,18 +108,17 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                 'import_success_template': 'plugins/gitlab_import_success.html',
                 'import_success_context': {
                     'source_title': self.get_gitlab_url(request),
-                    'failed_import_choices': failed_import_choices
-                }
+                    'failed_import_choices': failed_import_choices,
+                },
             }
 
             self.pop_from_session(request, 'gitlab_provider')
             return process_import(**kwargs)
 
         self.pop_from_session(request, 'gitlab_provider')
-        return render(request, 'core/error.html', {
-            'title': _('Import error'),
-            'errors': [_("Something went wrong.")]
-        }, status=200)
+        return render(
+            request, 'core/error.html', {'title': _('Import error'), 'errors': [_('Something went wrong.')]}, status=200
+        )
 
     def import_repo_subset(self):
         if self.current_project:
@@ -138,19 +126,23 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         else:
             return redirect('project_create_import')
 
-    def process_form_submission(self, request):
-        form_kwargs = {'source_title': self.get_gitlab_url(request)}
+    def process_form_submission(self):
+        access_token = self.get_from_session(self.request, 'access_token')
+        repo_choices, repo_help_text = self.get_repo_form_field_data(
+            self.request, access_token, minimum_repo_access_level=15
+        )  # 15 -> planner
+        form_kwargs = {'repo_choices': repo_choices, 'repo_help_text': repo_help_text}
         if len(self.import_choices) > 0:
             form_kwargs['import_choices'] = self.import_choices
 
-        form = self.get_form(self.request, GitLabImportForm, self.request.POST, **form_kwargs)
+        form = GitLabImportForm(self.request.POST, **form_kwargs)
         if form.is_valid():
             self.request.session['import_source_title'] = self.source_title = 'GitLab'
 
             # XML file import
             # Only an xml file was imported and no processing is needed
             if len(self.import_choices) == 0:
-                xml_url = self.process_form_data(request, form.cleaned_data, xml_url_only=True)
+                xml_url = self.process_form_data(form.cleaned_data, xml_url_only=True)
                 return self.get(self.request, xml_url)
 
             # Multiple-source imports
@@ -160,21 +152,27 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             import_choice_warnings = self.get_from_session(self.request, 'gitlab_import_choice_warnings')
 
             if import_choice_warnings is None:
-                context, import_choice_warnings = self.validate_import_choices(form.cleaned_data)
+                context, import_choice_warnings = self.validate_import_choices(form)
 
                 if len(import_choice_warnings) > 0:
                     return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
 
             #   2. Import selected choices
-            urls, import_choice_warnings = self.process_form_data(self.request, form.cleaned_data)
+            urls, import_choice_warnings = self.process_form_data(form.cleaned_data)
 
             repo_url = urls.pop('repo')
 
             if len(urls) == 0:
-                return render(self.request, 'core/error.html', {
-                    'title': _('Import error'),
-                    'errors': [_('Either none of the import choices exist or they could not be requested.')]
-                }, status=200)
+                self.pop_from_session(self.request, 'gitlab_provider')
+                return render(
+                    self.request,
+                    'core/error.html',
+                    {
+                        'title': _('Import error'),
+                        'errors': [_('Either none of the import choices exist or they could not be requested.')],
+                    },
+                    status=200,
+                )
             else:
                 self.store_in_session(self.request, 'request_urls', urls)
 
@@ -183,16 +181,12 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
             return self.get(self.request, repo_url)
 
-        context = {
-            'source_title': self.get_gitlab_url(self.request),
-            'form': form
-        }
+        context = {'source_title': self.get_gitlab_url(self.request), 'form': form}
 
         return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
 
     def check_urls(self, form_data):
-        other_repo_check  = form_data.get('other_repo_check')
-        repo = form_data.get('other_repo') if other_repo_check else form_data.get('repo')
+        repo = form_data.get('repo')
 
         imports = {}
         for _import in form_data.get('imports', []):
@@ -203,7 +197,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         urls = {
             'repo': self.get_request_url(self.request, repo),
-            'languages': self.get_request_url(self.request, repo, suffix='/languages'), # only in default branch
+            'languages': self.get_request_url(self.request, repo, suffix='/languages'),  # only in default branch
             'xml': (
                 self.get_request_url(self.request, repo, path=imports.get('xml'), ref=form_data.get('ref'))
                 if 'xml' in imports
@@ -219,69 +213,61 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                 if 'codemeta' in imports
                 else None
             ),
-            'license': self.get_request_url(self.request, repo, suffix='?license=yes') # only in default branch
+            'license': self.get_request_url(self.request, repo, suffix='?license=yes'),  # only in default branch
         }
-        selected_urls = {k:urls.get(k) for k in ['repo', *imports.keys()]}
+        selected_urls = {k: urls.get(k) for k in ['repo', *imports.keys()]}
 
         access_token = self.get_from_session(self.request, 'access_token')
         import_choice_warnings = {}
         choice_keys = []
         for choice_key, url in selected_urls.items():
             choice_keys.append(choice_key)
-            if imports.get(choice_key): # i.e. if form value has a file path
-                response = self.get_file_metadata(self.request, url)
+            if imports.get(choice_key):  # i.e. if form value has a file path
+                response = self.get_file_metadata(access_token, url)
             else:
                 response = requests.get(url, headers=self.get_authorization_headers(access_token))
 
             if response is None or response.status_code >= 400:
                 warning = (
-                    gettext('Either there is no file with this path in the selected repository '
-                            'or it cannot be requested')
-                    if imports.get(choice_key) # i.e. if form value has a file path
+                    gettext(
+                        'Either there is no file with this path in the selected repository or it cannot be requested'
+                    )
+                    if imports.get(choice_key)  # i.e. if form value has a file path
                     else gettext('Repository endpoint cannot be requested')
                 )
                 import_choice_warnings[choice_key] = [warning]
 
+            # No error status if no languages found, response is just an empty object
+            if choice_key == 'languages' and response.json() == {}:
+                warning = gettext('No languages found')
+                import_choice_warnings[choice_key] = [warning]
+
+            # No error status if no license found, response's license value equals None
+            if choice_key == 'license' and response.json().get('license') is None:
+                warning = gettext('No license found')
+                import_choice_warnings[choice_key] = [warning]
+
         return import_choice_warnings, choice_keys, selected_urls
 
-    def validate_import_choices(self, form_data):
-        import_choice_warnings, selected_choice_keys, _checked_import_urls = self.check_urls(form_data)
-
+    def validate_import_choices(self, form):
+        import_choice_warnings, selected_choice_keys, _checked_import_urls = self.check_urls(form.cleaned_data)
         self.store_in_session(self.request, 'gitlab_import_choice_warnings', import_choice_warnings)
+        selected_choices = [c for c in self.import_choices.get('choices', []) if c[2] in selected_choice_keys]
 
-        selected_choices = [
-            c for c in self.import_choices.get('choices', [])
-            if c[2] in selected_choice_keys
-        ]
+        form.fields['imports'].choices = selected_choices
+        form.fields['imports'].widget.choice_warnings = import_choice_warnings
 
-        form_kwargs = {'source_title': self.get_gitlab_url(self.request)}
-        if len(self.import_choices) > 0:
-            form_kwargs['import_choices'] = {
-                **self.import_choices,
-                'choices': selected_choices,
-                'choice_warnings': import_choice_warnings
-            }
+        context = {'source_title': self.get_gitlab_url(self.request), 'form': form}
 
-        form = self.get_form(
-            self.request,
-            GitLabImportForm,
-            self.request.POST,
-            **form_kwargs
-        )
-
-        context = {
-            'source_title': self.get_gitlab_url(self.request),
-            'form': form
-        }
         return context, import_choice_warnings
 
-    def process_form_data(self, request, form_data, xml_url_only=False):
+    def process_form_data(self, form_data, xml_url_only=False):
         # XML file import
         # Only an xml file was imported and no processing is needed
         if xml_url_only:
-            other_repo_check  = form_data.get('other_repo_check')
-            repo = form_data.get('other_repo') if other_repo_check else form_data.get('repo')
-            xml_url = self.get_request_url(request, repo, path=form_data.get('imports'), ref=form_data.get('ref'))
+            xml_url = self.get_request_url(
+                self.request, form_data.get('repo'), path=form_data.get('imports'), ref=form_data.get('ref')
+            )
 
             return xml_url
 
