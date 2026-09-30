@@ -19,15 +19,11 @@ logger = logging.getLogger(__name__)
 class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
     @property
     def import_choices(self):
-        smp_import_choices = getattr(self, 'smp_import_choices', None)
-        if smp_import_choices:
-            choices = smp_import_choices.get('choices', [])
-            choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
-            smp_import_choices['choices'] = choices
+        choices = self.smp_import_choices.get('choices', [])
+        choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
+        self.smp_import_choices['choices'] = choices
 
-            return smp_import_choices
-
-        return {}
+        return self.smp_import_choices
 
     def render(self):
         self.pop_from_session(self.request, 'gitlab_import_choice_warnings')
