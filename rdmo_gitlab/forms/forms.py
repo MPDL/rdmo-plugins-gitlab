@@ -142,10 +142,7 @@ class GitLabImportForm(GitLabBaseForm):
                 validators=[validate_import_file_path],
             )
 
-    repo = ChoiceFieldWithOther(
-        label=_('GitLab repository'),
-        required=False,
-    )
+    repo = ChoiceFieldWithOther(label=_('GitLab repository'))
 
     imports = MultivalueCheckboxMultipleChoiceField(
         label=_('Import choices'),
