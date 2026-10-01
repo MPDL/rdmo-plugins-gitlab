@@ -295,6 +295,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         request_data = {'branch': branch, 'commit_message': form_data['commit_message'], 'actions': actions}
 
+        self.pop_from_session(self.request, 'gitlab_export_data')
         if new_repo:
             request_data['url'] = url
             self.store_in_session(self.request, 'gitlab_export_data', request_data)
