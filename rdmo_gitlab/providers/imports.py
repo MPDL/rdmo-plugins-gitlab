@@ -21,9 +21,9 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
     def import_choices(self):
         choices = self.smp_import_choices.get('choices', [])
         choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
-        self.smp_import_choices['choices'] = choices
-
-        return self.smp_import_choices
+        gitlab_choices = self.smp_import_choices.copy()
+        gitlab_choices['choices'] = choices
+        return gitlab_choices
 
     def render(self):
         self.pop_from_session(self.request, 'gitlab_import_choice_warnings')
@@ -247,11 +247,17 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
     def validate_import_choices(self, form):
         import_choice_warnings, selected_choice_keys, _checked_import_urls = self.check_urls(form.cleaned_data)
+        
         self.store_in_session(self.request, 'gitlab_import_choice_warnings', import_choice_warnings)
+        
         selected_choices = [c for c in self.import_choices.get('choices', []) if c[2] in selected_choice_keys]
 
         form.fields['imports'].choices = selected_choices
         form.fields['imports'].widget.choice_warnings = import_choice_warnings
+
+        # Keep selected repo only, to hinder changes after selection
+        form.fields['repo'].choices = [(form.cleaned_data.get('repo'), form.cleaned_data.get('repo'))]
+        form.fields['repo'].include_other_choice = False
 
         context = {'source_title': self.get_gitlab_url(self.request), 'form': form}
 

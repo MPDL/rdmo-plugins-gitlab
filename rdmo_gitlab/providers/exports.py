@@ -180,6 +180,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         export_choice_warnings, selected_choice_keys, checked_export_choices, checked_branch = self.check_file_paths(
             form.cleaned_data.get('exports'), form.cleaned_data.get('repo'), form.cleaned_data.get('branch')
         )
+
         self.store_in_session(self.request, 'gitlab_export_choice_warnings', export_choice_warnings)
         self.store_in_session(self.request, 'gitlab_checked_export_choices', checked_export_choices)
         self.store_in_session(self.request, 'gitlab_checked_branch', checked_branch)
@@ -188,6 +189,11 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         form.fields['exports'].choices = selected_choices
         form.fields['exports'].widget.choice_warnings = export_choice_warnings
+
+        # disable repo fields to hinder changes after selection
+        form.fields['new_repo'].disabled = True
+        form.fields['repo'].choices = [(form.cleaned_data.get('repo'), form.cleaned_data.get('repo'))]
+        form.fields['repo'].include_other_choice = False
 
         context = {'form': form}
 
