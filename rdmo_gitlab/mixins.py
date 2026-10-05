@@ -118,19 +118,19 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         url = '{api_url}/projects/{repo}'.format(
             api_url=self.get_api_url(request),
-            repo=quote(repo.replace(self.get_gitlab_url(request), '').strip('/'), safe=''),
+            repo=quote(repo.replace(self.get_gitlab_url(request), '').strip('/').strip(), safe=''),
         )
 
         if path:
             url += '/repository/files/{path}'.format(
-                path=quote(path.removeprefix('../').removeprefix('./').strip('/'), safe='')
+                path=quote(path.removeprefix('../').removeprefix('./').strip('/').strip(), safe='')
             )
 
         if suffix:
-            url += suffix
+            url += suffix.strip()
 
         if ref:
-            url += '?ref={ref}'.format(ref=quote(ref, safe=''))
+            url += '?ref={ref}'.format(ref=quote(ref.strip(), safe=''))
 
         return url
 
