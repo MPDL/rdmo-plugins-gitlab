@@ -247,9 +247,9 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
     def validate_import_choices(self, form):
         import_choice_warnings, selected_choice_keys, _checked_import_urls = self.check_urls(form.cleaned_data)
-        
+
         self.store_in_session(self.request, 'gitlab_import_choice_warnings', import_choice_warnings)
-        
+
         selected_choices = [c for c in self.import_choices.get('choices', []) if c[2] in selected_choice_keys]
 
         form.fields['imports'].choices = selected_choices

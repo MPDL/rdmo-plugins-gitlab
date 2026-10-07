@@ -4,7 +4,7 @@ rdmo-plugins-gitlab
 This repo implements three plugins for [RDMO](https://github.com/rdmorganiser/rdmo):
 
 * an [issue provider](https://rdmo.readthedocs.io/en/latest/plugins/index.html#issue-providers), which lets users push their tasks from RDMO to GitLab issues.
-* an [import provider](https://rdmo.readthedocs.io/en/latest/plugins/index.html#project-import-plugins), which can be used to import projects from (public or private) repositories. For SMP projects, repository metadata (dependency graph, languages, license, CITATION or CodeMeta) can also be imported.
+* an [import provider](https://rdmo.readthedocs.io/en/latest/plugins/index.html#project-import-plugins), which can be used to import projects from (public or private) repositories. For SMP projects, repository metadata (languages, license, CITATION or CodeMeta) can also be imported.
 * an [export provider](https://rdmo.readthedocs.io/en/latest/plugins/index.html#project-export-plugins), which can be used to export projects to (public or private) repositories. For SMP projects, this plugin also provides other export choices that reuse project data (e.g. README, CITATION, CodeMeta or LICENSE files).
 
 The plugins use [OAUTH 2.0](https://oauth.net/2/), so that users use their respective accounts in both systems.
@@ -81,7 +81,7 @@ PROJECT_EXPORTS += [
 ]
 ```
 
-The export and import plugins use the plugin [rdmo-plugins-maus](https://github.com/MPDL/rdmo-plugins-maus). This plugin provides the SMP specific import and export choices as well as custom fields used in their form templates. `rdmo-plugins-maus` is installed as a dependency of `rdmo-plugins-gitlab`, but it must be also included in `INSTALLED_APPS` in `config/settings/local.py`:
+The export and import plugins use the plugin [rdmo-plugins-maus](https://github.com/rdmorganiser/rdmo-plugins-maus). This plugin provides the SMP specific import and export choices as well as custom fields used in their form templates. `rdmo-plugins-maus` is installed as a dependency of `rdmo-plugins-gitlab`, but it must be also included in `INSTALLED_APPS` in `config/settings/local.py`:
 
 ```python
 INSTALLED_APPS += ['rdmo_maus']
@@ -99,7 +99,7 @@ Additionally, a secret can be added to enable GitLab to communicate to RDMO when
 
 ### Import provider
 
-Users can import xml project files, and for SMP projects also repository metadata (dependency graph, languages, license, CITATION or CodeMeta files) directly from a public or private GitLab repository.
+Users can import xml project files, and for SMP projects also repository metadata (languages, license, CITATION or CodeMeta files) directly from a public or private GitLab repository.
 
 ### Export provider
 
