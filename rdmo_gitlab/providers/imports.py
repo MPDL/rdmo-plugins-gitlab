@@ -154,9 +154,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                     return render(self.request, 'plugins/gitlab_import_form.html', context, status=200)
 
             #   2. Import selected choices
-            urls, import_choice_warnings = self.process_form_data(form.cleaned_data)
-
-            repo_url = urls.pop('repo')
+            repo_url, urls, import_choice_warnings = self.process_form_data(form.cleaned_data)
 
             if len(urls) == 0:
                 self.pop_from_session(self.request, 'gitlab_provider')
@@ -192,7 +190,6 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             imports[key] = value
 
         urls = {
-            'repo': self.get_request_url(self.request, repo),
             'languages': self.get_request_url(self.request, repo, suffix='/languages'),  # only in default branch
             'xml': (
                 self.get_request_url(self.request, repo, path=imports.get('xml'), ref=form_data.get('ref'))
@@ -211,7 +208,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             ),
             'license': self.get_request_url(self.request, repo, suffix='?license=yes'),  # only in default branch
         }
-        selected_urls = {k: urls.get(k) for k in ['repo', *imports.keys()]}
+        selected_urls = {k: urls.get(k) for k in imports}
 
         access_token = self.get_from_session(self.request, 'access_token')
         import_choice_warnings = {}
@@ -284,7 +281,9 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             if choice_key not in new_choice_warnings:
                 selected_urls[choice_key] = url
 
-        return selected_urls, new_choice_warnings
+        repo_url = self.get_request_url(self.request, form_data.get('repo'))
+
+        return repo_url, selected_urls, new_choice_warnings
 
     def get_license(self, url, headers):
         license_id = None
