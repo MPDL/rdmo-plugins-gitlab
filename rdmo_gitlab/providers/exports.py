@@ -82,6 +82,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         provider = self.get_from_session(self.request, 'gitlab_provider')
         if provider is None:
+            self.pop_from_session(self.request, 'access_token')
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.select_provider(self.request)
 
@@ -196,7 +197,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         form.fields['repo'].choices = [(form.cleaned_data.get('repo'), form.cleaned_data.get('repo'))]
         form.fields['repo'].include_other_choice = False
 
-        context = {'form': form}
+        context = {'form': form, 'source_title': self.get_gitlab_url(self.request)}
 
         return context, export_choice_warnings
 

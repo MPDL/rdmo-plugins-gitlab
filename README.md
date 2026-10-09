@@ -35,12 +35,12 @@ If you want to support *multiple* GitLab providers, instead of defining a GITLAB
 
 ```python
 GITLAB_PROVIDERS = { # !! mind the plural form !!
-    _('Provider 1'): {
+    'Provider 1': {
         'gitlab_url': 'https://gitlab.com',
         'client_id': '',
         'client_secret': ''
     },
-    _('Provider 2'): {
+    'Provider 2': {
         'gitlab_url': 'https://gitlab.my-institute.de',
         'client_id': '',
         'client_secret': ''

@@ -11,7 +11,7 @@ def check_gitlab_provider_settings(app_configs, **kwargs):
     else:
         errors.append(
             Error(
-                'Neither settings.GITLAB_PROVIDER not settings.GITLAB_PROVIDERS exists.',
+                'Neither settings.GITLAB_PROVIDER nor settings.GITLAB_PROVIDERS exists.',
                 hint='Add GITLAB_PROVIDER for one or GITLAB_PROVIDERS for multiple providers '
                 'to config/settings/local.py',
             )
