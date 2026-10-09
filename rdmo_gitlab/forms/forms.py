@@ -11,6 +11,17 @@ from rdmo_maus.forms.fields import ChoiceFieldWithOther, MultivalueCheckboxMulti
 from .validators import validate_import_file_path, validate_new_repo_name
 
 
+class ProviderForm(forms.Form):
+    provider = forms.ChoiceField(
+        label=_('GitLab instance'), help_text=_('Select one of the supported instances'), widget=forms.RadioSelect
+    )
+
+    def __init__(self, *args, **kwargs):
+        provider_choices = kwargs.pop('provider_choices')
+        super().__init__(*args, **kwargs)
+
+        self.fields['provider'].choices = provider_choices
+
 class GitLabBaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         repo_choices = kwargs.pop('repo_choices')
