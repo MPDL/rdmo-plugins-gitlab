@@ -1,4 +1,5 @@
 import base64
+from functools import cached_property
 import logging
 
 from django.shortcuts import redirect, render
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
-    @property
+    @cached_property
     def import_choices(self):
         choices = self.smp_import_choices.get('choices', [])
         choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
