@@ -3,6 +3,7 @@ from urllib.parse import quote
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from rdmo.projects.providers import OauthIssueProvider
@@ -23,7 +24,20 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
         if repo_url:
             gitlab_url = '/'.join(repo_url.split('/')[:3])  # ['https:', '', {instance domain}, {user}, {repo name}]
             repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
-            return f'{gitlab_url}/api/v4/projects/{repo}/issues'
+            
+            if getattr(settings, 'GITLAB_PROVIDER', None):
+                provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+            elif getattr(settings, 'GITLAB_PROVIDERS', None):
+                providers = settings.GITLAB_PROVIDERS.values()
+                provider = next(
+                    (provider for provider in providers if provider.get('gitlab_url').strip('/') == gitlab_url), None
+                )
+            else:
+                provider = None
+
+            if provider is not None:
+                repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
+                return f'{gitlab_url}/api/v4/projects/{repo}/issues'
 
     def get_post_data(self, request, issue, integration, subject, message, attachments):
         return {'title': subject, 'description': message}
@@ -63,7 +77,11 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     @property
     def fields(self):
         return [
-            {'key': 'repo_url', 'placeholder': ' ', 'help': _('The URL of the GitLab repository to send issues to.')},
+            {
+                'key': 'repo_url', 
+                'placeholder': 'https://gitlab.example.org/group/project', 
+                'help': _('The URL of the GitLab repository to send issues to.'),
+            },
             {
                 'key': 'secret',
                 'placeholder': 'Secret (random) string',
@@ -72,3 +90,48 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
                 'secret': True,
             },
         ]
+
+    def get_gitlab_url(self, request):
+        # no provider is stored in session for GitLabIssueProvider,
+        # so use stored request info to get gitlab_url
+        _method, url, *_args = self.get_from_session(request, 'request')
+        # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
+        gitlab_url = '/'.join(url.split('/')[:3])
+        if getattr(settings, 'GITLAB_PROVIDER', None):
+            provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+        elif getattr(settings, 'GITLAB_PROVIDERS', None):
+            providers = settings.GITLAB_PROVIDERS.values()
+            provider = next(
+                (provider for provider in providers if provider.get('gitlab_url').strip('/') == gitlab_url), None
+            )
+        else:
+            provider = None
+
+        if provider is not None:
+            return gitlab_url
+
+    def _get_provider(self, request):
+        provider = None
+
+        _method, url, *_args = self.get_from_session(request, 'request')
+        # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
+        gitlab_url = '/'.join(url.split('/')[:3])
+        if getattr(settings, 'GITLAB_PROVIDER', None):
+            provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+        elif getattr(settings, 'GITLAB_PROVIDERS', None):
+            providers = settings.GITLAB_PROVIDERS.values()
+            provider = next(
+                (provider for provider in providers if provider['gitlab_url'].strip('/') == gitlab_url), None
+            )
+
+        return provider
+    
+    def get_client_id(self, request):
+        provider = self._get_provider(request)
+
+        return provider['client_id']
+
+    def get_client_secret(self, request):
+        provider = self._get_provider(request)
+
+        return provider['client_secret']

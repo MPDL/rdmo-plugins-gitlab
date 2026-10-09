@@ -1,7 +1,6 @@
 import logging
 from urllib.parse import quote, urlencode
 
-from django import forms
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -13,19 +12,13 @@ import requests
 
 from rdmo.services.providers import OauthProviderMixin
 
+from .forms.forms import ProviderForm
+
 logger = logging.getLogger(__name__)
 
 
 class GitLabProviderMixin(OauthProviderMixin):
     def get_gitlab_url(self, request):
-        if self.__class__.__name__ == 'GitLabIssueProvider':
-            # no provider is stored in session for GitLabIssueProvider,
-            # so use stored request info to get gitlab_url
-            _method, url, *_args = self.get_from_session(request, 'request')
-            # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
-            gitlab_url = '/'.join(url.split('/')[:3])
-            return gitlab_url
-
         provider = self.get_from_session(request, 'gitlab_provider')
         return provider['gitlab_url'].strip('/')
 
@@ -38,52 +31,18 @@ class GitLabProviderMixin(OauthProviderMixin):
     def get_api_url(self, request):
         return f'{self.get_gitlab_url(request)}/api/v4'
 
-    def _get_provider(self, request):
-        provider = None
-        if getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = settings.GITLAB_PROVIDER
-        elif getattr(settings, 'GITLAB_PROVIDERS', None):
-            _method, url, *_args = self.get_from_session(request, 'request')
-            # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
-            gitlab_url = '/'.join(url.split('/')[:3])
-
-            providers = settings.GITLAB_PROVIDERS.values()
-            provider = next(
-                (provider for provider in providers if provider['gitlab_url'].strip('/') == gitlab_url), None
-            )
-
-        return provider
-
+    
     def get_client_id(self, request):
         provider = self.get_from_session(request, 'gitlab_provider')
-
-        if self.__class__.__name__ == 'GitLabIssueProvider':
-            provider = self._get_provider(request)
-
         return provider['client_id']
 
     def get_client_secret(self, request):
         provider = self.get_from_session(request, 'gitlab_provider')
-
-        if self.__class__.__name__ == 'GitLabIssueProvider':
-            provider = self._get_provider(request)
-
         return provider['client_secret']
 
     @property
     def redirect_path(self):
         return reverse('oauth_callback', args=['gitlab'])
-
-    class ProviderForm(forms.Form):
-        provider = forms.ChoiceField(
-            label=_('GitLab instance'), help_text=_('Select one of the supported instances'), widget=forms.RadioSelect
-        )
-
-        def __init__(self, *args, **kwargs):
-            provider_choices = kwargs.pop('provider_choices')
-            super().__init__(*args, **kwargs)
-
-            self.fields['provider'].choices = provider_choices
 
     def get_authorize_params(self, request, state):
         return {
@@ -156,7 +115,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         elif getattr(settings, 'GITLAB_PROVIDERS', None):
             providers = settings.GITLAB_PROVIDERS.keys()
             provider_choices = [(p, p) for p in providers]
-            context = {'form': self.ProviderForm(provider_choices=provider_choices), 'submit': _('Select provider')}
+            context = {'form': ProviderForm(provider_choices=provider_choices), 'submit': _('Select provider')}
             return render(request, 'plugins/gitlab_provider_form.html', context, status=200)
 
         return render(
@@ -167,7 +126,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         )
 
     def set_provider(self, request):
-        provider_key = self.request.POST.get('provider')
+        provider_key = request.POST.get('provider')
         provider = settings.GITLAB_PROVIDERS.get(provider_key)
         self.store_in_session(request, 'gitlab_provider', provider)
 
