@@ -229,6 +229,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                     else gettext('Repository endpoint cannot be requested')
                 )
                 import_choice_warnings[choice_key] = [warning]
+                continue
 
             # No error status if no languages found, response is just an empty object
             if choice_key == 'languages' and response.json() == {}:
