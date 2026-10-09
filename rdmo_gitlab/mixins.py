@@ -134,7 +134,7 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         return url
 
-    def get_file_metadata(self, access_token, url):
+    def fetch_file_metadata(self, access_token, url):
         if access_token:
             response = requests.head(url, headers=self.get_authorization_headers(access_token))
             try:
@@ -287,7 +287,7 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         return access_token
 
-    def get_repo_choices(self, request, access_token, minimum_repo_access_level, per_page=10):
+    def fetch_repo_choices(self, request, access_token, minimum_repo_access_level, per_page=10):
         if access_token is None:
             return []
 
@@ -307,8 +307,8 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         return repo_choices
 
-    def get_repo_form_field_data(self, request, access_token, minimum_repo_access_level):
-        repo_choices = self.get_repo_choices(request, access_token, minimum_repo_access_level)
+    def fetch_repo_form_field_data(self, request, access_token, minimum_repo_access_level):
+        repo_choices = self.fetch_repo_choices(request, access_token, minimum_repo_access_level)
 
         if len(repo_choices) == 0:
             repo_help_text = _('You do not have any GitLab repositories yet.')

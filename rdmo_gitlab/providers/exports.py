@@ -89,7 +89,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.authorize(self.request)
 
-        repo_choices, repo_help_text = self.get_repo_form_field_data(
+        repo_choices, repo_help_text = self.fetch_repo_form_field_data(
             self.request, access_token, minimum_repo_access_level=30
         )  # 30 -> developer
         form_kwargs = {
@@ -114,7 +114,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             return getattr(self, method)(self.request)
 
         access_token = self.get_from_session(self.request, 'access_token')
-        repo_choices, repo_help_text = self.get_repo_form_field_data(
+        repo_choices, repo_help_text = self.fetch_repo_form_field_data(
             self.request, access_token, minimum_repo_access_level=30
         )  # 30 -> developer
         form_kwargs = {
@@ -168,7 +168,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             choice_keys.append(choice_key)
             url = self.get_request_url(self.request, repo, path=file_path, ref=branch)
 
-            response = self.get_file_metadata(access_token, url)
+            response = self.fetch_file_metadata(access_token, url)
             if response is not None and response.status_code == 200:
                 export_choice_warnings[choice_key] = [
                     gettext('A file with the same path exists in the selected repository and will be overwritten')

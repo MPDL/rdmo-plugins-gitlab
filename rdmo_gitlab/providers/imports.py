@@ -39,7 +39,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.authorize(self.request)
 
-        repo_choices, repo_help_text = self.get_repo_form_field_data(
+        repo_choices, repo_help_text = self.fetch_repo_form_field_data(
             self.request, access_token, minimum_repo_access_level=15
         )  # 15 -> planner
         form_kwargs = {'repo_choices': repo_choices, 'repo_help_text': repo_help_text}
@@ -124,7 +124,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
     def process_form_submission(self):
         access_token = self.get_from_session(self.request, 'access_token')
-        repo_choices, repo_help_text = self.get_repo_form_field_data(
+        repo_choices, repo_help_text = self.fetch_repo_form_field_data(
             self.request, access_token, minimum_repo_access_level=15
         )  # 15 -> planner
         form_kwargs = {'repo_choices': repo_choices, 'repo_help_text': repo_help_text}
@@ -216,7 +216,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         for choice_key, url in selected_urls.items():
             choice_keys.append(choice_key)
             if imports.get(choice_key):  # i.e. if form value has a file path
-                response = self.get_file_metadata(access_token, url)
+                response = self.fetch_file_metadata(access_token, url)
             else:
                 response = requests.get(url, headers=self.get_authorization_headers(access_token))
 
@@ -286,7 +286,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         return repo_url, selected_urls, new_choice_warnings
 
-    def get_license(self, url, headers):
+    def fetch_license(self, url, headers):
         license_id = None
 
         response = requests.get(url, headers=headers)
@@ -300,7 +300,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         return license_id
 
-    def get_languages(self, url, headers):
+    def fetch_languages(self, url, headers):
         languages = []
 
         response = requests.get(url, headers=headers)
@@ -312,7 +312,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         return languages
 
-    def _get_file(self, url, headers):
+    def _fetch_file(self, url, headers):
         content = None
 
         response = requests.get(url, headers=headers)
@@ -326,8 +326,8 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
 
         return content
 
-    def get_citation(self, url, headers):
-        return self._get_file(url, headers)
+    def fetch_citation(self, url, headers):
+        return self._fetch_file(url, headers)
 
-    def get_codemeta(self, url, headers):
-        return self._get_file(url, headers)
+    def fetch_codemeta(self, url, headers):
+        return self._fetch_file(url, headers)
