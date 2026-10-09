@@ -22,6 +22,7 @@ class ProviderForm(forms.Form):
 
         self.fields['provider'].choices = provider_choices
 
+
 class GitLabBaseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         repo_choices = kwargs.pop('repo_choices')

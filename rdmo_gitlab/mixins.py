@@ -31,7 +31,6 @@ class GitLabProviderMixin(OauthProviderMixin):
     def get_api_url(self, request):
         return f'{self.get_gitlab_url(request)}/api/v4'
 
-    
     def get_client_id(self, request):
         provider = self.get_from_session(request, 'gitlab_provider')
         return provider['client_id']

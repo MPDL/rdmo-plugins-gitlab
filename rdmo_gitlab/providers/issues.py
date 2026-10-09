@@ -1,9 +1,9 @@
 import json
 from urllib.parse import quote
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from rdmo.projects.providers import OauthIssueProvider
@@ -24,9 +24,13 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
         if repo_url:
             gitlab_url = '/'.join(repo_url.split('/')[:3])  # ['https:', '', {instance domain}, {user}, {repo name}]
             repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
-            
+
             if getattr(settings, 'GITLAB_PROVIDER', None):
-                provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+                provider = (
+                    settings.GITLAB_PROVIDER
+                    if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
+                    else None
+                )
             elif getattr(settings, 'GITLAB_PROVIDERS', None):
                 providers = settings.GITLAB_PROVIDERS.values()
                 provider = next(
@@ -78,8 +82,8 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     def fields(self):
         return [
             {
-                'key': 'repo_url', 
-                'placeholder': 'https://gitlab.example.org/group/project', 
+                'key': 'repo_url',
+                'placeholder': 'https://gitlab.example.org/group/project',
                 'help': _('The URL of the GitLab repository to send issues to.'),
             },
             {
@@ -98,7 +102,11 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
         # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
         gitlab_url = '/'.join(url.split('/')[:3])
         if getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+            provider = (
+                settings.GITLAB_PROVIDER
+                if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
+                else None
+            )
         elif getattr(settings, 'GITLAB_PROVIDERS', None):
             providers = settings.GITLAB_PROVIDERS.values()
             provider = next(
@@ -117,7 +125,11 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
         # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
         gitlab_url = '/'.join(url.split('/')[:3])
         if getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = settings.GITLAB_PROVIDER if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url else None
+            provider = (
+                settings.GITLAB_PROVIDER
+                if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
+                else None
+            )
         elif getattr(settings, 'GITLAB_PROVIDERS', None):
             providers = settings.GITLAB_PROVIDERS.values()
             provider = next(
@@ -125,7 +137,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
             )
 
         return provider
-    
+
     def get_client_id(self, request):
         provider = self._get_provider(request)
 
