@@ -78,6 +78,9 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
     def render(self):
         self.pop_from_session(self.request, 'gitlab_export_choice_warnings')
+        self.pop_from_session(self.request, 'gitlab_validation_repo_choice')
+        self.pop_from_session(self.request, 'gitlab_validation_selected_choice_keys')
+
         redirect_url = self.request.build_absolute_uri()
 
         provider = self.get_from_session(self.request, 'gitlab_provider')
@@ -125,6 +128,23 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             'export_choices': self.export_choices,
         }
         form = GitLabExportForm(self.request.POST, **form_kwargs)
+
+        validation_repo_choice = self.get_from_session(self.request, 'gitlab_validation_repo_choice')
+        if validation_repo_choice is not None:
+            validation_selected_choice_keys = self.get_from_session(
+                self.request, 'gitlab_validation_selected_choice_keys'
+            )
+            if validation_selected_choice_keys is not None:
+                validation_selected_choices = [
+                    c for c in self.export_choices.get('choices', []) if c[2] in validation_selected_choice_keys
+                ]
+                form.fields['exports'].choices = validation_selected_choices
+
+            # disable repo fields to hinder changes after selection
+            form.fields['new_repo'].disabled = True
+            form.fields['repo'].choices = [(validation_repo_choice, validation_repo_choice)]
+            form.fields['repo'].include_other_choice = False
+
         if form.is_valid():
             # 1. Validate export choices: Check submitted file paths to warn user if repo files will be overwritten
             export_choice_warnings = self.get_from_session(self.request, 'gitlab_export_choice_warnings')
@@ -196,6 +216,9 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
         form.fields['new_repo'].disabled = True
         form.fields['repo'].choices = [(form.cleaned_data.get('repo'), form.cleaned_data.get('repo'))]
         form.fields['repo'].include_other_choice = False
+
+        self.store_in_session(self.request, 'gitlab_validation_repo_choice', form.cleaned_data.get('repo'))
+        self.store_in_session(self.request, 'gitlab_validation_selected_choice_keys', selected_choice_keys)
 
         context = {'form': form, 'source_title': self.get_gitlab_url(self.request)}
 
