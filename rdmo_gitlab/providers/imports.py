@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
     @cached_property
     def import_choices(self):
+        if len(self.smp_import_choices) == 0:  # project's catalog != smp
+            return self.smp_import_choices
+
         choices = self.smp_import_choices.get('choices', [])
         choices = [c for c in choices if c[2] != 'sbom']  # sbom only enabled in paying plan
         gitlab_choices = self.smp_import_choices.copy()

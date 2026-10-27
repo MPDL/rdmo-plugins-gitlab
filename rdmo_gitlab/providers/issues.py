@@ -39,7 +39,10 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
             else:
                 provider = None
 
-            if provider is not None:
+            if provider is None:
+                self.pop_from_session(request, 'access_token')
+                return
+            else:
                 repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
                 return f'{gitlab_url}/api/v4/projects/{repo}/issues'
 
@@ -140,10 +143,14 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
 
     def get_client_id(self, request):
         provider = self._get_provider(request)
+        if provider is None:
+            return
 
         return provider['client_id']
 
     def get_client_secret(self, request):
         provider = self._get_provider(request)
+        if provider is None:
+            return
 
         return provider['client_secret']
