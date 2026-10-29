@@ -25,19 +25,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
             gitlab_url = '/'.join(repo_url.split('/')[:3])  # ['https:', '', {instance domain}, {user}, {repo name}]
             repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
 
-            if getattr(settings, 'GITLAB_PROVIDER', None):
-                provider = (
-                    settings.GITLAB_PROVIDER
-                    if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
-                    else None
-                )
-            elif getattr(settings, 'GITLAB_PROVIDERS', None):
-                providers = settings.GITLAB_PROVIDERS.values()
-                provider = next(
-                    (provider for provider in providers if provider.get('gitlab_url').strip('/') == gitlab_url), None
-                )
-            else:
-                provider = None
+            provider = self._get_provider(request, gitlab_url)
 
             if provider is None:
                 self.pop_from_session(request, 'access_token')
@@ -98,59 +86,29 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
             },
         ]
 
-    def get_gitlab_url(self, request):
-        # no provider is stored in session for GitLabIssueProvider,
-        # so use stored request info to get gitlab_url
-        _method, url, *_args = self.get_from_session(request, 'request')
-        # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
-        gitlab_url = '/'.join(url.split('/')[:3])
-        if getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = (
-                settings.GITLAB_PROVIDER
-                if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
-                else None
-            )
-        elif getattr(settings, 'GITLAB_PROVIDERS', None):
-            providers = settings.GITLAB_PROVIDERS.values()
-            provider = next(
-                (provider for provider in providers if provider.get('gitlab_url').strip('/') == gitlab_url), None
-            )
-        else:
-            provider = None
-
-        if provider is not None:
-            return gitlab_url
-
-    def _get_provider(self, request):
+    def _get_provider(self, request, gitlab_url=None):
         provider = None
 
-        _method, url, *_args = self.get_from_session(request, 'request')
-        # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
-        gitlab_url = '/'.join(url.split('/')[:3])
+        # no provider key is stored in session for GitLabIssueProvider,
+        # so use stored request info to get the provider based on the request's gitlab_url
+        if gitlab_url is None:
+            try:
+                _method, url, *_args = self.get_from_session(request, 'request')
+                # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
+                gitlab_url = '/'.join(url.split('/')[:3])
+            except TypeError: # no request info in session
+                return provider
+
         if getattr(settings, 'GITLAB_PROVIDER', None):
             provider = (
                 settings.GITLAB_PROVIDER
-                if settings.GITLAB_PROVIDER.get('gitlab_url').strip('/') == gitlab_url
+                if settings.GITLAB_PROVIDER.get('gitlab_url', '').strip('/') == gitlab_url
                 else None
             )
         elif getattr(settings, 'GITLAB_PROVIDERS', None):
             providers = settings.GITLAB_PROVIDERS.values()
             provider = next(
-                (provider for provider in providers if provider['gitlab_url'].strip('/') == gitlab_url), None
+                (provider for provider in providers if provider.get('gitlab_url', '').strip('/') == gitlab_url), None
             )
 
         return provider
-
-    def get_client_id(self, request):
-        provider = self._get_provider(request)
-        if provider is None:
-            return
-
-        return provider['client_id']
-
-    def get_client_secret(self, request):
-        provider = self._get_provider(request)
-        if provider is None:
-            return
-
-        return provider['client_secret']
