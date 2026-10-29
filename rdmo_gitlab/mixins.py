@@ -19,15 +19,8 @@ logger = logging.getLogger(__name__)
 
 class GitLabProviderMixin(OauthProviderMixin):
     def get_gitlab_url(self, request):
-        provider_key = self.get_from_session(request, 'gitlab_provider')
-
-        if provider_key and getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = settings.GITLAB_PROVIDER
-
-        elif provider_key and getattr(settings, 'GITLAB_PROVIDERS', None):
-            provider = settings.GITLAB_PROVIDERS.get(provider_key)
-
-        else:
+        provider = self._get_provider(request)
+        if provider is None:
             return
 
         return provider['gitlab_url'].strip('/')
@@ -53,9 +46,9 @@ class GitLabProviderMixin(OauthProviderMixin):
 
         return f'{gitlab_url}/api/v4'
 
-    def get_client_id(self, request):
+    def _get_provider(self, request):
         provider_key = self.get_from_session(request, 'gitlab_provider')
-
+        
         if provider_key and getattr(settings, 'GITLAB_PROVIDER', None):
             provider = settings.GITLAB_PROVIDER
 
@@ -65,18 +58,18 @@ class GitLabProviderMixin(OauthProviderMixin):
         else:
             return
 
+        return provider
+
+    def get_client_id(self, request):
+        provider = self._get_provider(request)
+        if provider is None:
+            return
+
         return provider['client_id']
 
     def get_client_secret(self, request):
-        provider_key = self.get_from_session(request, 'gitlab_provider')
-
-        if provider_key and getattr(settings, 'GITLAB_PROVIDER', None):
-            provider = settings.GITLAB_PROVIDER
-
-        elif provider_key and getattr(settings, 'GITLAB_PROVIDERS', None):
-            provider = settings.GITLAB_PROVIDERS.get(provider_key)
-
-        else:
+        provider = self._get_provider(request)
+        if provider is None:
             return
 
         return provider['client_secret']
