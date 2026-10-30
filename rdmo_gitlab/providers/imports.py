@@ -39,6 +39,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         provider = self.get_from_session(self.request, 'gitlab_provider')
         if provider is None:
             self.pop_from_session(self.request, 'access_token')
+            self.pop_from_session(self.request, 'refresh_token')
             self.store_in_session(self.request, 'redirect_url', redirect_url)
             return self.select_provider(self.request)
 

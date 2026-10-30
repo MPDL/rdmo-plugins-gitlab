@@ -26,11 +26,9 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
             repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
 
             provider = self._get_provider(request, gitlab_url)
-
-            if provider is None:
-                self.pop_from_session(request, 'access_token')
-                return
-            else:
+            self.pop_from_session(request, 'access_token')
+            self.pop_from_session(request, 'refresh_token')
+            if provider is not None:
                 repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
                 return f'{gitlab_url}/api/v4/projects/{repo}/issues'
 
@@ -96,7 +94,7 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
                 _method, url, *_args = self.get_from_session(request, 'request')
                 # ['https:', '', {instance domain}, api, v4, projects, {user}%2F{repo_name}, issues]
                 gitlab_url = '/'.join(url.split('/')[:3])
-            except TypeError: # no request info in session
+            except TypeError:  # no request info in session
                 return provider
 
         if getattr(settings, 'GITLAB_PROVIDER', None):

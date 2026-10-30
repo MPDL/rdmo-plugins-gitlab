@@ -23,7 +23,7 @@ class GitLabProviderMixin(OauthProviderMixin):
         if provider is None:
             return
 
-        return provider['gitlab_url'].strip('/')
+        return provider.get('gitlab_url', '').strip('/')
 
     def get_authorize_url(self, request):
         gitlab_url = self.get_gitlab_url(request)
@@ -48,7 +48,7 @@ class GitLabProviderMixin(OauthProviderMixin):
 
     def _get_provider(self, request):
         provider_key = self.get_from_session(request, 'gitlab_provider')
-        
+
         if provider_key and getattr(settings, 'GITLAB_PROVIDER', None):
             provider = settings.GITLAB_PROVIDER
 
@@ -65,14 +65,14 @@ class GitLabProviderMixin(OauthProviderMixin):
         if provider is None:
             return
 
-        return provider['client_id']
+        return provider.get('client_id')
 
     def get_client_secret(self, request):
         provider = self._get_provider(request)
         if provider is None:
             return
 
-        return provider['client_secret']
+        return provider.get('client_secret')
 
     @property
     def redirect_path(self):
