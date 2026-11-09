@@ -83,7 +83,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         redirect_url = self.request.build_absolute_uri()
 
-        provider = self.get_from_session(self.request, 'gitlab_provider')
+        provider = self._get_provider(self.request)
         if provider is None:
             self.pop_from_session(self.request, 'access_token')
             self.pop_from_session(self.request, 'refresh_token')
