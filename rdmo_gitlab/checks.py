@@ -6,14 +6,22 @@ from django.core.checks import Error, register
 def check_gitlab_provider_settings(app_configs, **kwargs):
     errors = []
 
-    if getattr(settings, 'GITLAB_PROVIDER', None) or getattr(settings, 'GITLAB_PROVIDERS', None):
+    if getattr(settings, 'GITLAB_PROVIDER', None) and getattr(settings, 'GITLAB_PROVIDERS', None):
+        errors.append(
+            Error(
+                'Both settings.GITLAB_PROVIDER and settings.GITLAB_PROVIDERS exist.',
+                hint='Keep either one, but not both. Keep GITLAB_PROVIDER for only one GitLab instance, '
+                'use GITLAB_PROVIDERS to allow for multiple instances.',
+            )
+        )
+    elif getattr(settings, 'GITLAB_PROVIDER', None) or getattr(settings, 'GITLAB_PROVIDERS', None):
         pass
     else:
         errors.append(
             Error(
                 'Neither settings.GITLAB_PROVIDER nor settings.GITLAB_PROVIDERS exists.',
-                hint='Add GITLAB_PROVIDER for one or GITLAB_PROVIDERS for multiple providers '
-                'to config/settings/local.py',
+                hint='Add GITLAB_PROVIDER for one or GITLAB_PROVIDERS for multiple GitLab instances '
+                'to config/settings/local.py.',
             )
         )
 
