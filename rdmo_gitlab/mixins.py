@@ -160,7 +160,11 @@ class GitLabProviderMixin(OauthProviderMixin):
 
     def set_provider(self, request):
         provider = request.POST.get('provider')
-        self.store_in_session(request, 'gitlab_provider', provider)
+        allowed_providers = settings.GITLAB_PROVIDERS.keys()
+        if provider in allowed_providers:
+            self.store_in_session(request, 'gitlab_provider', provider)
+        else:
+            return self.select_provider(request)
 
         redirect_url = self.pop_from_session(request, 'redirect_url')
         if redirect_url is not None:
@@ -178,7 +182,16 @@ class GitLabProviderMixin(OauthProviderMixin):
         state = get_random_string(length=32)
         self.store_in_session(request, 'state', state)
 
-        url = self.get_authorize_url(request) + '?' + urlencode(self.get_authorize_params(request, state))
+        authorize_url = self.get_authorize_url(request)
+        if authorize_url is None:
+            return render(
+                request,
+                'core/error.html',
+                {'title': _('OAuth authorization not successful'), 'errors': [_('URL could not be resolved.')]},
+                status=200,
+            )
+        
+        url = authorize_url + '?' + urlencode(self.get_authorize_params(request, state))
         return HttpResponseRedirect(url)
 
     def callback(self, request):
