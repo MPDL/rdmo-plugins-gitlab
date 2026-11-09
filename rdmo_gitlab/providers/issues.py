@@ -20,14 +20,14 @@ class GitLabIssueProvider(GitLabProviderMixin, OauthIssueProvider):
     )
 
     def get_post_url(self, request, issue, integration, subject, message, attachments):
-        repo_url = integration.get_option_value('repo_url')
+        repo_url = integration.get_option_value('repo_url').strip('/')
         if repo_url:
-            gitlab_url = '/'.join(repo_url.split('/')[:3])  # ['https:', '', {instance domain}, {user}, {repo name}]
-            repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
-
+            gitlab_url = '/'.join(repo_url.split('/')[:-2])  # ['https:', '', {instance domain}, {user}, {repo name}]
             provider = self._get_provider(request, gitlab_url)
-            self.pop_from_session(request, 'access_token')
-            self.pop_from_session(request, 'refresh_token')
+
+            if getattr(settings, 'GITLAB_PROVIDERS', None):
+                self.pop_from_session(request, 'access_token')
+                self.pop_from_session(request, 'refresh_token')
             if provider is not None:
                 repo = quote(repo_url.replace(gitlab_url, '').strip('/'), safe='')
                 return f'{gitlab_url}/api/v4/projects/{repo}/issues'
