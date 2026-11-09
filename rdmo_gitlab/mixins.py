@@ -190,7 +190,7 @@ class GitLabProviderMixin(OauthProviderMixin):
                 {'title': _('OAuth authorization not successful'), 'errors': [_('URL could not be resolved.')]},
                 status=200,
             )
-        
+
         url = authorize_url + '?' + urlencode(self.get_authorize_params(request, state))
         return HttpResponseRedirect(url)
 
