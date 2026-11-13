@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 16:42+0000\n"
+"POT-Creation-Date: 2026-11-13 15:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -157,43 +157,43 @@ msgstr ""
 msgid "File must be in XML format."
 msgstr "Die Datei muss im XML-Format vorliegen."
 
-#: mixins.py:151
+#: mixins.py:156
 msgid "Select provider"
 msgstr "Anbieter auswählen"
 
-#: mixins.py:157 mixins.py:176
+#: mixins.py:162 mixins.py:181
 msgid "GitLab error"
 msgstr "GitLab-Fehler"
 
-#: mixins.py:157 mixins.py:176
+#: mixins.py:162 mixins.py:181
 msgid "No redirect could be found."
 msgstr "Kein redirect gefunden."
 
-#: mixins.py:190 mixins.py:202
+#: mixins.py:195 mixins.py:207 mixins.py:216
 msgid "OAuth authorization not successful"
 msgstr "OAuth-Autorisierung war nicht erfolgreich"
 
-#: mixins.py:190
-msgid "URL could not be resolved."
+#: mixins.py:195 mixins.py:216
+msgid "No URL could not be resolved."
 msgstr "Die URL konnte nicht aufgelöst werden."
 
-#: mixins.py:202
+#: mixins.py:207
 msgid "State parameter did not match."
 msgstr "Der Parameter 'state' stimmt nicht überein."
 
-#: mixins.py:244
+#: mixins.py:257
 msgid "OAuth authorization successful"
 msgstr "OAuth-Autorisierung war erfolgreich"
 
-#: mixins.py:244
+#: mixins.py:257
 msgid "But no redirect could be found."
 msgstr "Aber kein redirect gefunden."
 
-#: mixins.py:318
+#: mixins.py:334
 msgid "You do not have any GitLab repositories yet."
 msgstr "Sie haben noch keine GitLab-Repositorien."
 
-#: mixins.py:321
+#: mixins.py:337
 msgid "These are your most recently updated, accessible GitLab repositories."
 msgstr ""
 "Das sind Ihre zuletzt aktualisierten, zugänglichen GitLab-Repositorien."
@@ -214,11 +214,11 @@ msgstr "beispiel_ordner/beispiel_csv_datei.csv"
 msgid "example_folder/example_json_file.json"
 msgstr "beispiel_ordner/beispiel_json_datei.json"
 
-#: providers/exports.py:171
+#: providers/exports.py:172
 msgid "Something went wrong"
 msgstr "Etwas ist schief gelaufen"
 
-#: providers/exports.py:174
+#: providers/exports.py:175
 msgid ""
 "Either the export choices could not be created or the repository content "
 "would have been overwritten without a warning."
@@ -226,7 +226,11 @@ msgstr ""
 "Entweder konnten die Export-Optionen nicht erstellt werden oder der Inhalt "
 "des Repositoriums wäre ohne Warnung überschrieben worden."
 
-#: providers/exports.py:197
+#: providers/exports.py:197 providers/imports.py:267
+msgid "No check possible because the url could not be resolved"
+msgstr "Ein Check ist nicht möglich, da die URL nicht aufgelöst werden konnte."
+
+#: providers/exports.py:204
 msgid ""
 "A file with the same path exists in the selected repository and will be "
 "overwritten"
@@ -234,7 +238,7 @@ msgstr ""
 "Eine Datei mit demselben Pfad existiert im ausgewählten Repositorium und "
 "wird überschrieben"
 
-#: providers/exports.py:289
+#: providers/exports.py:296
 msgid ""
 "not exported - it would have overwritten existing file in repository without "
 "a warning."
@@ -242,11 +246,11 @@ msgstr ""
 "nicht exportiert - es hätte die bestehende Datei im Repositorium ohne "
 "Warnung überschrieben."
 
-#: providers/exports.py:301
+#: providers/exports.py:308
 msgid "not exported - it could not be created."
 msgstr "nicht exportiert - es konnte nicht erstellt werden."
 
-#: providers/exports.py:304
+#: providers/exports.py:311
 msgid "successfully exported."
 msgstr "erfolgreich exportiert."
 
@@ -254,7 +258,8 @@ msgstr "erfolgreich exportiert."
 msgid "GitLab Import"
 msgstr "GitLab-Import"
 
-#: providers/imports.py:125 providers/imports.py:189
+#: providers/imports.py:125 providers/imports.py:171 providers/imports.py:199
+#: providers/imports.py:211
 msgid "Import error"
 msgstr "Fehler beim Import"
 
@@ -262,13 +267,17 @@ msgstr "Fehler beim Import"
 msgid "Something went wrong."
 msgstr "Etwas ist schief gelaufen."
 
-#: providers/imports.py:190
+#: providers/imports.py:172 providers/imports.py:200
+msgid "No URL could be resolved."
+msgstr "Die URL konnte nicht aufgelöst werden."
+
+#: providers/imports.py:212
 msgid "Either none of the import choices exist or they could not be requested."
 msgstr ""
 "Entweder existieren die Importoptionen nicht oder sie konnten nicht "
 "angefragt werden."
 
-#: providers/imports.py:250
+#: providers/imports.py:279
 msgid ""
 "Either there is no file with this path in the selected repository or it "
 "cannot be requested"
@@ -276,15 +285,15 @@ msgstr ""
 "Entweder existiert keine Datei mit diesem Pfad im ausgewälten Repositorium "
 "oder sie kann nicht angefragt werden"
 
-#: providers/imports.py:253
+#: providers/imports.py:282
 msgid "Repository endpoint cannot be requested"
 msgstr "Der Repositorium-Endpunkt kann nicht angefragt werden"
 
-#: providers/imports.py:260
+#: providers/imports.py:289
 msgid "No languages found"
 msgstr "Keine Sprachen gefunden"
 
-#: providers/imports.py:265
+#: providers/imports.py:294
 msgid "No license found"
 msgstr "Keine Lizenz gefunden"
 
