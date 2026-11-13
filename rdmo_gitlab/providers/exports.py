@@ -103,6 +103,7 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             'repo_help_text': repo_help_text,
             'export_choices': self.export_choices,
         }
+
         context = {'form': GitLabExportForm(**form_kwargs), 'source_title': self.get_gitlab_url(self.request)}
         return render(self.request, 'plugins/gitlab_export_form.html', context, status=200)
 
@@ -190,6 +191,12 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             choice_key, file_path = export.split(',')
             choice_keys.append(choice_key)
             url = self.get_request_url(self.request, repo, path=file_path, ref=branch)
+
+            if url is None:
+                export_choice_warnings[choice_key] = [
+                    gettext('No check possible because the url could not be resolved')
+                ]
+                continue
 
             response = self.fetch_file_metadata(access_token, url)
             if response is not None and response.status_code == 200:
@@ -324,6 +331,8 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
 
         repo = 'repo_placeholder' if new_repo else form_data['repo']
         url = self.get_request_url(self.request, repo, suffix='/repository/commits')
+        if url is None:
+            return None, None
 
         request_data = {'branch': branch, 'commit_message': form_data['commit_message'], 'actions': actions}
 
@@ -332,7 +341,11 @@ class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
             request_data['url'] = url
             self.store_in_session(self.request, 'gitlab_export_data', request_data)
 
-            url = f'{self.get_api_url(self.request)}/projects'
+            gitlab_url = self.get_api_url(self.request)
+            if gitlab_url is None:
+                return None, None
+            
+            url = f'{gitlab_url}/projects'
             new_repo_name = form_data['new_repo_name']
             request_data = {'name': new_repo_name, 'visibility': 'public'}
 

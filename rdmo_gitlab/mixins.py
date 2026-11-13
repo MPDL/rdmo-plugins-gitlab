@@ -109,9 +109,14 @@ class GitLabProviderMixin(OauthProviderMixin):
     def get_request_url(self, request, repo, path=None, suffix=None, ref=None):
         """Create the request url for export and import choices."""
 
+        api_url = self.get_api_url(request)
+        gitlab_url = self.get_gitlab_url(request)
+        if api_url is None or gitlab_url is None:
+            return
+
         url = '{api_url}/projects/{repo}'.format(
-            api_url=self.get_api_url(request),
-            repo=quote(repo.replace(self.get_gitlab_url(request), '').strip('/').strip(), safe=''),
+            api_url=api_url,
+            repo=quote(repo.replace(gitlab_url, '').strip('/').strip(), safe=''),
         )
 
         if path:
@@ -160,7 +165,7 @@ class GitLabProviderMixin(OauthProviderMixin):
 
     def set_provider(self, request):
         provider = request.POST.get('provider')
-        allowed_providers = settings.GITLAB_PROVIDERS.keys()
+        allowed_providers = getattr(settings, 'GITLAB_PROVIDERS', {}).keys()
         if provider in allowed_providers:
             self.store_in_session(request, 'gitlab_provider', provider)
         else:
@@ -203,7 +208,15 @@ class GitLabProviderMixin(OauthProviderMixin):
                 status=200,
             )
 
-        url = self.get_token_url(request) + '?' + urlencode(self.get_callback_params(request))
+        token_url = self.get_token_url(request)
+        if token_url is None:
+            return render(
+                request,
+                'core/error.html',
+                {'title': _('OAuth authorization not successful'), 'errors': [_('URL could not be resolved.')]},
+                status=200,
+            )
+        url = token_url + '?' + urlencode(self.get_callback_params(request))
 
         response = requests.post(
             url,
@@ -248,10 +261,11 @@ class GitLabProviderMixin(OauthProviderMixin):
     def validate_access_token(self, request, access_token):
         # https://docs.gitlab.com/api/oauth2/
 
-        if access_token is None:
+        gitlab_url = self.get_gitlab_url(request)
+        if access_token is None or gitlab_url is None:
             return None
 
-        url = f'{self.get_gitlab_url(request)}/oauth/token/info'
+        url = f'{gitlab_url}/oauth/token/info'
         response = requests.get(url, headers=self.get_authorization_headers(access_token))
 
         try:
@@ -270,10 +284,11 @@ class GitLabProviderMixin(OauthProviderMixin):
         "Update access token with refresh_token if it exists"
 
         refresh_token = self.pop_from_session(request, 'refresh_token')
-        if refresh_token is None:
+        token_url = self.get_token_url(request)
+        if refresh_token is None or token_url is None:
             return None
 
-        url = self.get_token_url(request) + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
+        url = token_url + '?' + urlencode(self.get_refresh_token_params(request, refresh_token))
         response = requests.post(url)
 
         try:
@@ -292,11 +307,12 @@ class GitLabProviderMixin(OauthProviderMixin):
         return access_token
 
     def fetch_repo_choices(self, request, access_token, minimum_repo_access_level, per_page=10):
-        if access_token is None:
+        api_url = self.get_api_url(request)
+        if access_token is None or api_url is None:
             return []
 
         url = '{api_url}/projects?min_access_level={mal}&active={a}&per_page={pp}&order_by={ob}'.format(
-            api_url=self.get_api_url(request), mal=minimum_repo_access_level, a=True, pp=per_page, ob='updated_at'
+            api_url=api_url, mal=minimum_repo_access_level, a=True, pp=per_page, ob='updated_at'
         )
 
         response = requests.get(url, headers=self.get_authorization_headers(access_token=access_token))

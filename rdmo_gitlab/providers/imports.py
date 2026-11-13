@@ -163,7 +163,18 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             # Only an xml file was imported and no processing is needed
             if len(self.import_choices) == 0:
                 xml_url = self.process_form_data(form.cleaned_data, xml_url_only=True)
-                return self.get(self.request, xml_url)
+                if xml_url is None:
+                    return render(
+                        self.request,
+                        'core/error.html',
+                        {
+                            'title': _('Import error'),
+                            'errors': [_('No URL could be resolved.')],
+                        },
+                        status=200,
+                    )
+                else:
+                    return self.get(self.request, xml_url)
 
             # Multiple-source imports
             # user can select multiple import sources, so processing is needed
@@ -180,7 +191,18 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             #   2. Import selected choices
             repo_url, urls, import_choice_warnings = self.process_form_data(form.cleaned_data)
 
-            if len(urls) == 0:
+            if repo_url is None:
+                return render(
+                    self.request,
+                    'core/error.html',
+                    {
+                        'title': _('Import error'),
+                        'errors': [_('No URL could be resolved.')],
+                    },
+                    status=200,
+                )
+
+            if isinstance(urls, dict) and len(urls) == 0:
                 self.pop_from_session(self.request, 'gitlab_provider')
                 return render(
                     self.request,
@@ -194,7 +216,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             else:
                 self.store_in_session(self.request, 'request_urls', urls)
 
-            if len(import_choice_warnings) > 0:
+            if isinstance(import_choice_warnings, dict) and len(import_choice_warnings) > 0:
                 self.store_in_session(self.request, 'gitlab_import_choice_warnings', import_choice_warnings)
 
             return self.get(self.request, repo_url)
@@ -239,6 +261,13 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
         choice_keys = []
         for choice_key, url in selected_urls.items():
             choice_keys.append(choice_key)
+
+            if url is None:
+                import_choice_warnings[choice_key] = [
+                    gettext('No check possible because the url could not be resolved')
+                ]
+                continue
+
             if imports.get(choice_key):  # i.e. if form value has a file path
                 response = self.fetch_file_metadata(access_token, url)
             else:
@@ -295,7 +324,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             xml_url = self.get_request_url(
                 self.request, form_data.get('repo'), path=form_data.get('imports'), ref=form_data.get('ref')
             )
-
+            
             return xml_url
 
         # Multiple-source imports
@@ -310,6 +339,8 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
                 selected_urls[choice_key] = url
 
         repo_url = self.get_request_url(self.request, form_data.get('repo'))
+        if repo_url is None:
+            return None, None, None
 
         return repo_url, selected_urls, new_choice_warnings
 
