@@ -19,7 +19,7 @@ from ..mixins import GitLabProviderMixin
 logger = logging.getLogger(__name__)
 
 
-class GitLabExportProvider(GitLabProviderMixin, Export, SMPExportMixin):
+class GitLabExportProvider(GitLabProviderMixin, SMPExportMixin, Export):
     @cached_property
     def export_choices(self):
 
