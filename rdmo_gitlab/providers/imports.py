@@ -324,7 +324,7 @@ class GitLabImportProvider(GitLabProviderMixin, SMPRepoImportMixin):
             xml_url = self.get_request_url(
                 self.request, form_data.get('repo'), path=form_data.get('imports'), ref=form_data.get('ref')
             )
-            
+
             return xml_url
 
         # Multiple-source imports

@@ -344,7 +344,7 @@ class GitLabExportProvider(GitLabProviderMixin, SMPExportMixin, Export):
             gitlab_url = self.get_api_url(self.request)
             if gitlab_url is None:
                 return None, None
-            
+
             url = f'{gitlab_url}/projects'
             new_repo_name = form_data['new_repo_name']
             request_data = {'name': new_repo_name, 'visibility': 'public'}
